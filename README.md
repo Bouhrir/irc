@@ -81,23 +81,6 @@ The Internet Relay Chat (IRC) protocol enables real-time, text-based communicati
 
 - IRC bots are automated programs that can perform various tasks, such as moderating channels, providing information, or running games.
 
-## Usage
-
-Explain how users can use the IRC protocol, connect to servers, join channels, and communicate with others.
-
-## Contributing
-
-If you're open to contributions, provide guidelines for how others can contribute to the documentation or the IRC protocol itself.
-
-## License
-
-Specify the license under which this documentation is distributed. For example, MIT, Apache 2.0, etc.
-
-## Contact
-
-Provide your contact information (email, social media, etc.) for questions or feedback related to the IRC protocol or this documentation.
-
-
 # recourcse
 
 <a href="https://beej.us/guide/bgnet/html/split-wide/index.html">
