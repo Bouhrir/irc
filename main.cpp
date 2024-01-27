@@ -6,7 +6,7 @@
 /*   By: obouhrir <obouhrir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/17 17:19:03 by obouhrir          #+#    #+#             */
-/*   Updated: 2024/01/25 13:11:02 by obouhrir         ###   ########.fr       */
+/*   Updated: 2024/01/27 12:39:31 by obouhrir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,11 +30,12 @@ int main(int ac, char **av){
     	serverAddress.sin_addr.s_addr = INADDR_ANY;
     	serverAddress.sin_port = htons(std::atoi(irc.getPort().c_str()));
 
-   		if (bind(Socket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1) {
+   		if (bind(Socket, reinterpret_cast<struct sockaddr *>(&serverAddress), sizeof(serverAddress)) == -1) {
    		    std::cerr << "Error binding socket\n";
    		    close(Socket);
    		    return 1;
    		}
+		// setsockopt();
 
    		if (listen(Socket, 100) == -1) {
    		    std::cerr << "Error listening on socket\n";
