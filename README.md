@@ -5,12 +5,7 @@ The Internet Relay Chat (IRC) protocol has been designed over a number of years,
 IRC is a text-based chat protocol which has proven itself valuable and useful. It is well-suited to running on many machines in a distributed fashion. A typical setup involves multiple servers connected in a distributed network. Messages are delivered through this network and state is maintained across it for the connected clients and active channels.
 
 The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL NOT”, “SHOULD”, “SHOULD NOT”, “RECOMMENDED”, “MAY”, and “OPTIONAL” in this document are to be interpreted as described in RFC2119.
-
-# IRC Protocol Overview
-
-A brief overview of the Internet Relay Chat (IRC) protocol, including key concepts, features, and usage.
-
-## Table of Contents
+# Table of Contents
 
 - [IRC Protocol Overview](#irc-protocol-overview)
   - [Table of Contents](#table-of-contents)
@@ -29,6 +24,11 @@ A brief overview of the Internet Relay Chat (IRC) protocol, including key concep
   - [Contributing](#contributing)
   - [License](#license)
   - [Contact](#contact)
+
+## IRC Protocol Overview
+
+A brief overview of the Internet Relay Chat (IRC) protocol, including key concepts, features, and usage.
+
 
 ## About the IRC Protocol
 
