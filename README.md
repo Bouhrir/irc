@@ -86,3 +86,7 @@ The Internet Relay Chat (IRC) protocol enables real-time, text-based communicati
 <a href="https://beej.us/guide/bgnet/html/split-wide/index.html">
   socket programming guide.
 </a>
+
+<a href="https://www.codequoi.com/en/handling-a-file-by-its-descriptor-in-c/#what_is_a_file_descriptor">
+  Handling a File by its Descriptor in C.
+</a>

@@ -6,7 +6,7 @@
 /*   By: obouhrir <obouhrir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/17 17:19:03 by obouhrir          #+#    #+#             */
-/*   Updated: 2024/01/31 17:38:37 by obouhrir         ###   ########.fr       */
+/*   Updated: 2024/02/05 10:07:38 by obouhrir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,12 @@ int main(int ac, char **av){
 			std::cerr << "error: socket." << endl;
 			return 1;
 		}
+		// if (fcntl(servSocket, F_SETFL, O_NONBLOCK) < 0)
+		// {
+		// 	std::cerr << "Error non-blocking on socket\n";
+   		//     close(servSocket);
+   		//     return 1;
+		// }
 		sockaddr_in servAddress;
     	servAddress.sin_family = AF_INET;
     	servAddress.sin_addr.s_addr = INADDR_ANY;
@@ -47,27 +53,37 @@ int main(int ac, char **av){
    		    close(servSocket);
    		    return 1;
    		}
+	
 		while (true){
 			sockaddr_in clientAddress;
 			socklen_t size = sizeof(clientAddress);
 			int clientSocket = accept(servSocket, reinterpret_cast<sockaddr *>(&clientAddress), &size);
+			// sleep(2);
 			if (clientSocket == -1){
 				std::cerr << "Error accpeting incoming connection" << endl;
 				continue;
 			}
-			// fcntl(clientSocket , F_SETFL, O_NONBLOCK);
+			cout << clientSocket << endl;
+			// if (fcntl(clientSocket, F_SETFL, O_NONBLOCK) < 0)
+			// {
+			// 	std::cerr << "Error non-blocking on socket\n";
+   			//     close(clientSocket);
+   			//     return 1;
+			// }
 			char buff[100];
 			int read = recv(clientSocket, buff, sizeof(buff), 0);
 			if (read == -1)
 				std::cerr << "Error reading from client" << endl;
 			else{
 				buff[read] = '\0';
+				cout << &buff << endl;
 				cout << "client: " << buff << endl;
 
-				int sending = send(clientSocket, "a mar7ba bikom kaaaamlin", 24, 0);
+				int sending = send(clientSocket, "server: a mar7ba bikom kaaaamlin", 32, 0);
 				if (sending == -1)
 					std::cerr << "Error sending msg to client" << endl;
 			}
+			close(clientSocket);
 		}
 		close(servSocket);
 	}
