@@ -6,7 +6,7 @@
 /*   By: obouhrir <obouhrir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/17 17:19:20 by obouhrir          #+#    #+#             */
-/*   Updated: 2024/01/19 11:04:20 by obouhrir         ###   ########.fr       */
+/*   Updated: 2024/02/10 15:10:33 by obouhrir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,15 +21,32 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include <fcntl.h>
+#include <sys/select.h>
+#include <map>
+#include <poll.h>
+#include <set>
+
+
+#define MAX_CLIENT 1
 
 using std::string;
 using std::cout;
 using std::endl;
 
+typedef struct s_client {
+	int socket;
+	string nickname;
+	string username;
+	bool op;
+}t_client;
+
+typedef std::map<int, t_client> map;
+
 class Parse {
 	private:
 		string port;
 		string password;
+		// std::map<string , std::set<int> > serv;
 	public:
 		Parse();
 		Parse(string const &, string const &);
