@@ -6,7 +6,7 @@
 /*   By: obouhrir <obouhrir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/17 17:19:03 by obouhrir          #+#    #+#             */
-/*   Updated: 2024/02/12 14:56:45 by obouhrir         ###   ########.fr       */
+/*   Updated: 2024/02/20 14:55:03 by obouhrir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,11 @@ void setnoBlocking(int fd){
 	fcntl(fd, F_SETFL, O_NONBLOCK);
 }
 
+void printascii(string ss){
+	for (size_t i = 0; i < ss.length(); i++){
+		cout << static_cast<int>(ss.c_str()[i]) << " ";
+	}
+}
 int main(int ac, char **av){
 
 
@@ -81,31 +86,44 @@ int main(int ac, char **av){
 					std::cerr << "Error accpeting incoming connection" << endl;
 				}
 				else {
-					// setnoBlocking(clientSocket);
+					//   setnoBlocking(clientSocket);
 					fds[nfds].fd = clientSocket;
-					fds[nfds].events = POLLIN;
+					fds[nfds].events = POLLIN | POLLOUT;
 					++nfds;
 					t_client cl; 
 					cl.nickname = "";
 					cl.username = "";
 					cl.op = false;
 					clients[clientSocket] = cl;
-					cout << clientSocket << endl;
 					
 					char buff[100];
 					int read;
-					// send(clientSocket, "password: ", 11, 0);
 					while ((read = recv(clientSocket,buff, 100, 0 )) > 0){
-
 						buff[read] = '\0';
-						// if (!::strcmp(buff, irc.getPassword().c_str()))
-						// 	send(clientSocket, "try again: invalid password\npassword :", 39, 0);
-						// else{
-							
-						cout << buff ;
-						if (!::strncmp(buff, "salam", 6))
-							send(clientSocket, "\033[1;32mserver: a mar7ba bikooom\033[0m\n", 37, 0);
-						// }
+						// cout << buff ;
+						std::stringstream iss(buff);
+						string token;
+						while (std::getline(iss,token, ' ')){
+							if (token == "PASS"){
+								std::getline(iss, token, '\r');
+								
+								for(int i = 0; i < (int)token.length();++i ){
+									cout << (int)token[i] << " ";
+								}
+								cout << endl;
+								if (!token.compare(irc.getPassword()))
+								{
+									send(clientSocket, "a mar7ba bikom kaaamlin\n",25, 0);
+				
+								}
+								else
+								{
+									send(clientSocket, "Error: incorrect password\n",27, 0);
+								}
+								
+							}
+						}
+						
 					}
 				}
 			}

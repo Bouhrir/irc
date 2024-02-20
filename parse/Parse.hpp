@@ -6,7 +6,7 @@
 /*   By: obouhrir <obouhrir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/17 17:19:20 by obouhrir          #+#    #+#             */
-/*   Updated: 2024/02/10 15:42:49 by obouhrir         ###   ########.fr       */
+/*   Updated: 2024/02/13 18:09:13 by obouhrir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@
 #include <map>
 #include <poll.h>
 #include <set>
+#include <sstream>
 
 
 #define MAX_CLIENT 100
