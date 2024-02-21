@@ -81,13 +81,6 @@ void server::check_requ(std::string str, client &Client){
 
 			if (str.empty())
 				throw std::runtime_error("Error: invalid username");
-			std::list<client *>::iterator it = std::find(_clients.begin(), _clients.end(), &Client);
-			if (it != _clients.end()) {
-    			if ((*it)->getUsername() == str){
-       				throw std::runtime_error("Error: this username already exists");
-				}
-			}
-
 			Client.setUsername(str);
 		}
 		else if (!std::strncmp(token.c_str(), "NICK", 4)){
@@ -107,6 +100,13 @@ void server::check_requ(std::string str, client &Client){
 		
 			if (str != this->_passwd)
 				throw std::runtime_error("Error: invalid password");
+			Client.setActive(true);
+		}
+	}
+	std::list<client *>::iterator it = std::find(_clients.begin(), _clients.end(), &Client);
+	if (it != _clients.end()) {
+    	if ((*it)->getUsername() == Client.getUsername()){
+    		throw std::runtime_error("Error: this username already exists");
 		}
 	}
 	_clients.push_back(&Client);
@@ -166,10 +166,6 @@ void	server::launch(std::string	passwd, std::string	port) {
 					check_requ(buff, client);
 				}
 			}
-
-
-
-			
 	}
 
 	
