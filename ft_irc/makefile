@@ -2,7 +2,7 @@ NAME = IRC
 
 FLAGS = -std=c++98  #-Werror -Wall -Wextra 
 
-SRC = main.cpp utils.cpp server.cpp client.cpp
+SRC = main.cpp utils.cpp server.cpp client.cpp 
 
 INCLUDES = head.hpp error.hpp server.hpp client.hpp
 

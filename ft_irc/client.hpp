@@ -4,8 +4,10 @@
 #include<iostream>
 #include"head.hpp"
 
+#define MAX_CLIENT 256
 class	client {
 private:
+	bool			_active;
 	std::string		_username;
 	std::string		_nickname;
 	int				_client_sock;
@@ -19,8 +21,8 @@ public:
 	client();
 	client(int socket);
 	client(const client& other);
-	client operator=(const client& other);
-	client operator==(const client& other);
+	client &operator=(const client& other);
+	bool operator==(const client& other);
 	~client();
 	
 	// Setters

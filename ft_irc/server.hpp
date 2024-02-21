@@ -3,6 +3,11 @@
 
 #include"head.hpp"
 #include<list>
+#include <poll.h>
+#include <sstream>
+#include <algorithm>
+
+#define IRC true
 
 class client;
 
@@ -14,6 +19,7 @@ private:
 	sockaddr_in			_server_addr;
 	socklen_t			_addr_len;
 	std::list<client*>	_clients;
+	int 				activity;
 public:
 	// Orthedox Form
 	server();
@@ -23,6 +29,8 @@ public:
 
 	// Server Setup
 	void	launch(std::string	passwd, std::string	port);
+	void 	setpoll(int);
+	void 	check_requ(std::string , client &);
 };
 
 #endif

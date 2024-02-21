@@ -15,11 +15,11 @@ client::client(const client& other) {
 
 }
 
-client client::operator=(const client& other) {
-
+client &client::operator=(const client& __unused other) {
+	return *this;
 }
 
-client client::operator==(const client& other) {
+bool client::operator==(const client& other) {
 	return (this->_username == other._username);
 }
 
@@ -54,5 +54,5 @@ int				client::getClientsock() const {
 }
 
 sockaddr_in 	client::getClientaddr() const {
-
+	return _client_addr;
 }
