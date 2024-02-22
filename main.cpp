@@ -6,7 +6,7 @@
 /*   By: obouhrir <obouhrir@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/01/17 17:19:03 by obouhrir          #+#    #+#             */
-/*   Updated: 2024/02/20 14:55:03 by obouhrir         ###   ########.fr       */
+/*   Updated: 2024/02/20 15:52:43 by obouhrir         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ int main(int ac, char **av){
     	servAddress.sin_port = htons(std::atoi(irc.getPort().c_str()));
 		
 		int enable = 1;
-		if (setsockopt(servSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(int)) < 0) {
+		if (setsockopt(servSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0) {
 		    std::cerr << "Error setting socket option" << std::endl;
 		    close(servSocket);
 		    return 1;
