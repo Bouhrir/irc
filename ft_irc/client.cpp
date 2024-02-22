@@ -11,6 +11,7 @@ client::client(int socket) : _username("username"), _nickname("nickname") {
 		throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
 }
 
+
 client::client(const client& other) {
 
 }
@@ -39,6 +40,10 @@ void	client::setClientsock(int socket) {
 	if (socket == -1)
 		throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
 }
+void 	client::setActive(bool set){
+	_active = set;
+}
+
 
 // Getters
 std::string	client::getUsername() const {

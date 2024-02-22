@@ -29,6 +29,7 @@ public:
 	void	setUsername( std::string& Username );
 	void	setNickname( std::string& Nickname );
 	void	setClientsock(int socket);
+	void 	setActive(bool);
 
 	// Getters
 	std::string		getUsername() const ;
