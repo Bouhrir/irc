@@ -30,7 +30,7 @@ public:
 	// Server Setup
 	void	launch(std::string	passwd, std::string	port);
 	void 	setpoll(int);
-	void 	check_requ(std::string , client &);
+	void 	check_requ(std::string , client *);
 };
 
 #endif
