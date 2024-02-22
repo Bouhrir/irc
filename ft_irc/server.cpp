@@ -58,6 +58,7 @@ void server::setpoll(int act){
 }
 
 void printascii(std::string ss){
+	std::cout << "ascii => ";
 	for (size_t i = 0; i < ss.length(); i++){
 		if (static_cast<int>(ss.c_str()[i]) == 10)
 			std::cout << "\\n";
@@ -78,11 +79,16 @@ void server::check_requ(std::string str, client *Client){
 			std::stringstream ss(token);
 			std::string str;
 			std::getline(ss, str, ' ');std::getline(ss, str, ' ');
-
 			// printascii(str);
 			if (str.empty())
 				throw std::runtime_error("Error: invalid username");
+			std::list<client *>::iterator it = _clients.begin();
+			for (; it != _clients.end();++it){
+				if ((*it)->getUsername() == str)
+					throw std::runtime_error("Error: this username already exists");
+			}
 			Client->setUsername(str);
+
 		}
 		else if (!std::strncmp(token.c_str(), "NICK", 4)){
 			std::stringstream ss(token);
@@ -92,7 +98,6 @@ void server::check_requ(std::string str, client *Client){
 			if (str.empty())
 				throw std::runtime_error("Error: invalid nickname");
 			
-			// printascii(str);
 			Client->setNickname(str);
 		}
 		else if (!std::strncmp(token.c_str(), "PASS", 4)){
@@ -105,16 +110,10 @@ void server::check_requ(std::string str, client *Client){
 			Client->setActive(true);
 		}
 	}
-	std::list<client *>::iterator it = std::find(_clients.begin(), _clients.end(), Client);
-	if (it != _clients.end()) {
-		if (*it == Client){
-			throw std::runtime_error("Error: this username already exists");
-		}
-	}
 	_clients.push_back(Client);
-	std::list<client *>::iterator i = _clients.begin();
-	for (; i != _clients.end(); ++i)
-		std::cout << "list = " << (*i)->getUsername() << std::endl;
+	// std::list<client *>::iterator i = _clients.begin();
+	// for (; i != _clients.end(); ++i)
+	// 	std::cout << "list = " << (*i)->getUsername() << std::endl;
 }
 // Server Setup
 void	server::launch(std::string	passwd, std::string	port) {
@@ -148,7 +147,7 @@ void	server::launch(std::string	passwd, std::string	port) {
 
 	while (IRC){
 			//multiplexing
-			setpoll(poll(fds, nfds, -1));
+			setpoll(poll(fds, nfds, 5000));
 
 			client *c = new client();
 			if (fds[0].revents & POLLIN){
@@ -162,11 +161,13 @@ void	server::launch(std::string	passwd, std::string	port) {
 			for (int i = 1; i < nfds ; ++i){
 				if (fds[i].revents & POLLIN){
 					std::cout << "client fd: " << fds[i].fd << std::endl;
+					std::cout << "IP => " << inet_ntoa(c->_client_addr.sin_addr) << std::endl;
 					char buff[100];
 					int read = recv(fds[i].fd, buff, sizeof(buff), 0);
 					if (read == -1)
 						throw std::runtime_error("hbas hna");
 					buff[read] = '\0';
+					std::cout << buff;
 					check_requ(buff, c);
 				}
 			}
