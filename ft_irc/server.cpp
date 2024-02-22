@@ -77,9 +77,9 @@ void server::check_requ(std::string str, client *Client){
 		if (!std::strncmp(token.c_str(), "USER", 4)){
 			std::stringstream ss(token);
 			std::string str;
-			std::getline(ss, str, ' ');
-			std::getline(ss, str, ' ');
+			std::getline(ss, str, ' ');std::getline(ss, str, ' ');
 
+			// printascii(str);
 			if (str.empty())
 				throw std::runtime_error("Error: invalid username");
 			Client->setUsername(str);
@@ -92,7 +92,7 @@ void server::check_requ(std::string str, client *Client){
 			if (str.empty())
 				throw std::runtime_error("Error: invalid nickname");
 			
-			printascii(str);
+			// printascii(str);
 			Client->setNickname(str);
 		}
 		else if (!std::strncmp(token.c_str(), "PASS", 4)){
@@ -161,7 +161,6 @@ void	server::launch(std::string	passwd, std::string	port) {
 			//check request
 			for (int i = 1; i < nfds ; ++i){
 				if (fds[i].revents & POLLIN){
-					puts("here");
 					std::cout << "client fd: " << fds[i].fd << std::endl;
 					char buff[100];
 					int read = recv(fds[i].fd, buff, sizeof(buff), 0);
