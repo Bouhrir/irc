@@ -52,8 +52,8 @@ server::~server() {
 }
 
 void server::setpoll(int act){
-	activity = act;
-	if (activity == -1)
+	_activity = act;
+	if (_activity == -1)
 		throw std::runtime_error("Failed in poll(): " + std::string(strerror(errno)));
 }
 
@@ -63,59 +63,66 @@ void printascii(std::string ss){
 			std::cout << "\\n";
 		else if (static_cast<int>(ss.c_str()[i]) == 13)
 			std::cout << "\\r";
-		else
-			std::cout << static_cast<char>(ss.c_str()[i]);
+		else {
+			std::cout << static_cast<int>(ss.c_str()[i]);
+		}
 	}
-	std::cout << std::endl;
+
+	std::cout << " --  " << ss << std::endl;
 }
 
 void server::check_requ(std::string str, client *Client){
 	std::stringstream iss(str);
 	std::string token;
+	std::string tmp;
 
-	while (std::getline(iss, token, '\n')){
-		if (!std::strncmp(token.c_str(), "USER", 4)){
-			std::stringstream ss(token);
-			std::string str;
-			std::getline(ss, str, ' ');
-			std::getline(ss, str, ' ');
+	while (std::getline(iss, token, '\n')) {
+		std::istringstream iss(token);
+		std::string command;
+		iss >> command;
+		std::cout << "command " << command << std::endl;
+		if (!std::strncmp(command.c_str(), "USER", 4)){
+    		std::string username, nickname, ipAddress;
+    		iss >> username >> nickname >> ipAddress;
 
-			if (str.empty())
-				throw std::runtime_error("Error: invalid username");
-			Client->setUsername(str);
+    		// Remove the last colon (:) from the ipAddress
+    		ipAddress = ipAddress.substr(0, ipAddress.size() - 1);
+
+    		// Set's the client's object with the parsed information
+		std::cout << "username && address" << username << "  " << ipAddress << std::endl;
+    		Client->setUsername(username);
+    		Client->setIpAddress(ipAddress);
 		}
-		else if (!std::strncmp(token.c_str(), "NICK", 4)){
-			std::stringstream ss(token);
-			std::string str;
-			std::getline(ss, str, ' '); std::getline(ss, str, '\r');
+		else if (!std::strncmp(command.c_str(), "NICK", 4)){
+    		std::string nickname;
+			iss >> nickname;
 
-			if (str.empty())
-				throw std::runtime_error("Error: invalid nickname");
-			
-			printascii(str);
+    		// nickname = nickname.substr(0, nickname.size() - 1);
 			Client->setNickname(str);
 		}
-		else if (!std::strncmp(token.c_str(), "PASS", 4)){
-			std::stringstream ss(token);
-			std::string str;
-			std::getline(ss, str, ' '); std::getline(ss, str, '\r');
-		
-			if (str != this->_passwd)
+		else if (!std::strncmp(command.c_str(), "PASS", 4)){
+			std::string passwd;
+			iss >> passwd;
+
+			if (passwd != _passwd)
 				throw std::runtime_error("Error: invalid password");
 			Client->setActive(true);
 		}
 	}
-	std::list<client *>::iterator it = std::find(_clients.begin(), _clients.end(), Client);
-	if (it != _clients.end()) {
-		if (*it == Client){
-			throw std::runtime_error("Error: this username already exists");
-		}
-	}
+	int count = 0;
+	// Client->printClient();
 	_clients.push_back(Client);
-	std::list<client *>::iterator i = _clients.begin();
-	for (; i != _clients.end(); ++i)
-		std::cout << "list = " << (*i)->getUsername() << std::endl;
+	// std::list<client *>::iterator i = _clients.begin();
+	// for (; i !=  _clients.end(); ++i, ++count) {
+	// 	std::cout << "index = " << count << std::endl;
+	// 	(*i)->printClient();
+	// }
 }
+
+void	printClient(client *c) {
+
+}
+
 // Server Setup
 void	server::launch(std::string	passwd, std::string	port) {
 	_port = my_atoi(port);
@@ -150,10 +157,13 @@ void	server::launch(std::string	passwd, std::string	port) {
 			//multiplexing
 			setpoll(poll(fds, nfds, -1));
 
-			client *c = new client();
+			client *c;
 			if (fds[0].revents & POLLIN){
-				c->setClientsock(accept(_server_sock, reinterpret_cast<sockaddr *>(&c->_client_addr), &c->_addr_len));
+				c = new client();
 
+				c->setClientsock(accept(_server_sock, reinterpret_cast<sockaddr *>(&c->_client_addr), &c->_addr_len));
+					// std::cerr << "Client IP address: " << inet_ntoa(c->_client_addr.sin_addr) << std::endl;
+					// std::cerr << "Actual size of clientAddr structure: " << c->_addr_len << std::endl;
 				fds[nfds].fd = c->getClientsock();
 				fds[nfds].events = POLLIN | POLLOUT;
 				++nfds;
@@ -161,13 +171,13 @@ void	server::launch(std::string	passwd, std::string	port) {
 			//check request
 			for (int i = 1; i < nfds ; ++i){
 				if (fds[i].revents & POLLIN){
-					puts("here");
 					std::cout << "client fd: " << fds[i].fd << std::endl;
-					char buff[100];
+					char buff[1024];
 					int read = recv(fds[i].fd, buff, sizeof(buff), 0);
 					if (read == -1)
 						throw std::runtime_error("hbas hna");
 					buff[read] = '\0';
+					// std::cerr << buff << std::endl;
 					check_requ(buff, c);
 				}
 			}
