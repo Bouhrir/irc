@@ -12,8 +12,8 @@ class client;
 
 class	server {
 private:
-	std::string			_passwd;
 	int					_port;
+	std::string			_passwd;
 	int					_server_sock;
 	sockaddr_in			_server_addr;
 	socklen_t			_addr_len;

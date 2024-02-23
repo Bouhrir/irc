@@ -166,7 +166,7 @@ void	server::launch(std::string	passwd, std::string	port) {
 				++nfds;
 			}
 			//check request
-			for (int i = 1; i < nfds ; ++i){
+			for (size_t i = 1; i < nfds ; ++i){
 				if (fds[i].revents & POLLIN){
 					// std::cout << "client fd: " << fds[i].fd << std::endl;
 					char buff[1024];

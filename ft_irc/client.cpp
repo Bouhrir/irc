@@ -12,7 +12,7 @@ client::client(int socket) : _username("username"), _nickname("nickname") {
 }
 
 
-client::client(const client& other) {
+client::client(const client& __unused other) {
 
 }
 

@@ -13,7 +13,7 @@ private:
 	std::string		_nickname;
 	std::string		_ipaddress;
 	int				_client_sock;
-	char			_buff[BUFFER_SIZE];
+	char __unused	_buff[BUFFER_SIZE];
 public:
 
 	socklen_t		_addr_len;
