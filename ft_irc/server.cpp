@@ -139,40 +139,48 @@ void	server::launch(std::string	passwd, std::string	port) {
 
 	std::cout << "\033[1;32mThe server is listening on the port ==> \033[0m" << "\033[1;41m" << _port << "\033[0m" <<  std::endl;
 	
-	struct pollfd fds[MAX_CLIENT + 1];
-	
-	fds[0].fd = _server_sock;
-	fds[0].events = POLLIN;
-	size_t nfds = 1;
+	std::vector<struct pollfd> fds;
 
-	while (IRC){
-			//multiplexing
-			setpoll(poll(fds, nfds, 5000));
+    struct pollfd serverPollfd;
+    serverPollfd.fd = _server_sock;
+    serverPollfd.events = POLLIN;
+    fds.push_back(serverPollfd);
+	int count = 0;
+    while (IRC) {
+        // multiplexing
+        setpoll(poll(&fds[0], fds.size(), 5000));
 
-			client *c = new client();
-			if (fds[0].revents & POLLIN){
-				c->setClientsock(accept(_server_sock, reinterpret_cast<sockaddr *>(&c->_client_addr), &c->_addr_len));
+        client *c = new client();
+        if (fds[0].revents & POLLIN) {
+            c->setClientsock(accept(_server_sock, reinterpret_cast<sockaddr *>(&c->_client_addr), &c->_addr_len));
 
-				fds[nfds].fd = c->getClientsock();
-				fds[nfds].events = POLLIN | POLLOUT;
-				++nfds;
+            struct pollfd clientPollfd;
+            clientPollfd.fd = c->getClientsock();
+            clientPollfd.events = POLLIN | POLLOUT;
+            fds.push_back(clientPollfd);
+        }
+
+        // Check requests
+        for (size_t i = 1; i < fds.size(); ++i) {
+            if (fds[i].revents & POLLIN) {
+                std::cout << "client fd: " << fds[i].fd << std::endl;
+				std::cout << count << std::endl;
+                std::cout << "IP => " << inet_ntoa(c->_client_addr.sin_addr) << std::endl;
+                char buff[100];
+                int read = recv(fds[i].fd, buff, sizeof(buff), 0);
+                if (read == -1)
+                    throw std::runtime_error("Error receiving data");
+                buff[read] = '\0';
+                std::cout << buff;
+                check_requ(buff, c);
+            }
+			else if (fds[i].revents & POLLOUT){
+				count++;
+				// std::cout << "POLLOUT" << std::endl;
+				///
 			}
-			//check request
-			for (int i = 1; i < nfds ; ++i){
-				if (fds[i].revents & POLLIN){
-					std::cout << "client fd: " << fds[i].fd << std::endl;
-					std::cout << "IP => " << inet_ntoa(c->_client_addr.sin_addr) << std::endl;
-					char buff[100];
-					int read = recv(fds[i].fd, buff, sizeof(buff), 0);
-					if (read == -1)
-						throw std::runtime_error("hbas hna");
-					buff[read] = '\0';
-					std::cout << buff;
-					check_requ(buff, c);
-				}
-			}
+        }
 	}
-
 	
 }
 
