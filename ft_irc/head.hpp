@@ -7,12 +7,14 @@
 #include <unistd.h>
 #include <sys/socket.h>
 #include "error.hpp"
+#include "channel.hpp"
+#include "client.hpp"
 #include <vector>
 #include <fcntl.h>
 
 
 #define TCP SOCK_STREAM
-#define	BUFFER_SIZE 2048
+// #define	BUFFER_SIZE 2048
 
 class	commands {
 private:
@@ -36,6 +38,9 @@ public:
 // 	char            sin_zero[8];
 // };
 
-int	open_socket();
+class client;
+class channel;
+
+// int	open_socket();
 
 #endif

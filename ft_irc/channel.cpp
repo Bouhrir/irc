@@ -43,10 +43,7 @@ std::string	channel::getTopic() {
 std::string	channel::getPasswd() {
 	return (_passwd);
 }
-// Utils
-void	sendMessage(client *other, std::string  msg) {
-	
-}
+
 
 bool	check_operator(channel& chan, client	*cl) {
 	std::list<client*>::iterator it;

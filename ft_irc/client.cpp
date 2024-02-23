@@ -21,7 +21,7 @@ client &client::operator=(const client& __unused other) {
 }
 
 bool client::operator==(const client& other) {
-	return (this->_username == other._username);
+	return (this->_nickname == other._nickname);
 }
 
 client::~client() {
@@ -34,6 +34,9 @@ void	client::setUsername( std::string& Username ) {
 }
 void	client::setNickname( std::string& Nickname ) {
 	_nickname = Nickname;
+}
+void	client::setIpAddress( std::string& IpAddress ) {
+	_ipaddress = IpAddress;
 }
 void	client::setClientsock(int socket) {
 	_client_sock = socket;
@@ -60,4 +63,16 @@ int				client::getClientsock() const {
 
 sockaddr_in 	client::getClientaddr() const {
 	return _client_addr;
+}
+
+
+// methods
+
+void client::printClient() const {
+    std::cout << "\033[1;36mClient Information\033[0m" << std::endl;
+    std::cout << "Client fd: " <<  getClientsock() << std::endl;
+    std::cout << "Username: " << _username << std::endl;
+    std::cout << "Nickname: " << _nickname << std::endl;
+    std::cout << "IP Address: " << _ipaddress << std::endl;
+
 }

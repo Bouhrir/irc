@@ -52,69 +52,75 @@ server::~server() {
 }
 
 void server::setpoll(int act){
-	activity = act;
-	if (activity == -1)
+	_activity = act;
+	if (_activity == -1)
 		throw std::runtime_error("Failed in poll(): " + std::string(strerror(errno)));
 }
 
 void printascii(std::string ss){
-	std::cout << "ascii => ";
 	for (size_t i = 0; i < ss.length(); i++){
 		if (static_cast<int>(ss.c_str()[i]) == 10)
 			std::cout << "\\n";
 		else if (static_cast<int>(ss.c_str()[i]) == 13)
 			std::cout << "\\r";
-		else
-			std::cout << static_cast<char>(ss.c_str()[i]);
+		else {
+			std::cout << static_cast<int>(ss.c_str()[i]);
+		}
 	}
-	std::cout << std::endl;
+
+	std::cout << ss << " " << std::endl;
+}
+bool fr = false;
+bool validCAPLS(const std::string& message) {
+	if (!message.compare(0, 6, "CAP LS")){
+		fr = true;
+		return true;
+	}
+    return false;
 }
 
 void server::check_requ(std::string str, client *Client){
 	std::stringstream iss(str);
 	std::string token;
+	// std::string tmp;
+	if (!validCAPLS(str) && !fr)
+		return ;
+	while (std::getline(iss, token, '\n')) {
+		std::istringstream iss(token);
+		std::string command;
+		iss >> command;
+		// std::cout << "command " << command << std::endl;
+		if (!std::strncmp(command.c_str(), "USER", 4)){
+			std::string username, nickname, ipAddress;
+			iss >> username >> nickname >> ipAddress;
 
-	while (std::getline(iss, token, '\n')){
-		if (!std::strncmp(token.c_str(), "USER", 4)){
-			std::stringstream ss(token);
-			std::string str;
-			std::getline(ss, str, ' ');std::getline(ss, str, ' ');
-			// printascii(str);
-			if (str.empty())
-				throw std::runtime_error("Error: invalid username");
-			std::list<client *>::iterator it = _clients.begin();
-			for (; it != _clients.end();++it){
-				if ((*it)->getUsername() == str)
-					throw std::runtime_error("Error: this username already exists");
-			}
-			Client->setUsername(str);
-
+			// Set's the client's object with the parsed information
+			// std::cout << "username && address => " << username << "  " << ipAddress << std::endl;
+			Client->setUsername(username);
+			Client->setIpAddress(ipAddress);
 		}
-		else if (!std::strncmp(token.c_str(), "NICK", 4)){
-			std::stringstream ss(token);
-			std::string str;
-			std::getline(ss, str, ' '); std::getline(ss, str, '\r');
+		else if (!std::strncmp(command.c_str(), "NICK", 4)){
+			std::string nickname;
+			iss >> nickname;
 
-			if (str.empty())
-				throw std::runtime_error("Error: invalid nickname");
-			
-			Client->setNickname(str);
+			// std::cout << "nickname => " << nickname << std::endl;
+			Client->setNickname(nickname);
 		}
-		else if (!std::strncmp(token.c_str(), "PASS", 4)){
-			std::stringstream ss(token);
-			std::string str;
-			std::getline(ss, str, ' '); std::getline(ss, str, '\r');
-		
-			if (str != this->_passwd)
+		else if (!std::strncmp(command.c_str(), "PASS", 4)){
+			std::string passwd;
+			iss >> passwd;
+
+			// std::cout << "password => " << passwd << std::endl;
+			if (passwd != _passwd)
 				throw std::runtime_error("Error: invalid password");
 			Client->setActive(true);
 		}
+
+		_clients.push_back(Client);
+		// Client->printClient();
 	}
-	_clients.push_back(Client);
-	// std::list<client *>::iterator i = _clients.begin();
-	// for (; i != _clients.end(); ++i)
-	// 	std::cout << "list = " << (*i)->getUsername() << std::endl;
 }
+
 // Server Setup
 void	server::launch(std::string	passwd, std::string	port) {
 	_port = my_atoi(port);
@@ -137,50 +143,42 @@ void	server::launch(std::string	passwd, std::string	port) {
 		throw	std::runtime_error("Failed in listening to server's socket: " + std::string(strerror(errno)));
 	}
 
-	std::cout << "\033[1;32mThe server is listening on the port ==> \033[0m" << "\033[1;41m" << _port << "\033[0m" <<  std::endl;
+	std::cout << "\033[1;42mThe server is listening on the port\033[0m ==> " << "\033[1;41m" << _port << "\033[0m" <<  std::endl;
 	
-	std::vector<struct pollfd> fds;
+	struct pollfd fds[MAX_CLIENT + 1];
+	
+	fds[0].fd = _server_sock;
+	fds[0].events = POLLIN;
+	size_t nfds = 1;
 
-    struct pollfd serverPollfd;
-    serverPollfd.fd = _server_sock;
-    serverPollfd.events = POLLIN;
-    fds.push_back(serverPollfd);
-	int count = 0;
-    while (IRC) {
-        // multiplexing
-        setpoll(poll(&fds[0], fds.size(), 5000));
+	while (IRC){
+			//multiplexing
+			setpoll(poll(fds, nfds, -1));
 
-        client *c = new client();
-        if (fds[0].revents & POLLIN) {
-            c->setClientsock(accept(_server_sock, reinterpret_cast<sockaddr *>(&c->_client_addr), &c->_addr_len));
+			client *c;
+			if (fds[0].revents & POLLIN){
+				c = new client();
 
-            struct pollfd clientPollfd;
-            clientPollfd.fd = c->getClientsock();
-            clientPollfd.events = POLLIN | POLLOUT;
-            fds.push_back(clientPollfd);
-        }
+				c->setClientsock(accept(_server_sock, reinterpret_cast<sockaddr *>(&c->_client_addr), &c->_addr_len));
 
-        // Check requests
-        for (size_t i = 1; i < fds.size(); ++i) {
-            if (fds[i].revents & POLLIN) {
-                std::cout << "client fd: " << fds[i].fd << std::endl;
-				std::cout << count << std::endl;
-                std::cout << "IP => " << inet_ntoa(c->_client_addr.sin_addr) << std::endl;
-                char buff[100];
-                int read = recv(fds[i].fd, buff, sizeof(buff), 0);
-                if (read == -1)
-                    throw std::runtime_error("Error receiving data");
-                buff[read] = '\0';
-                std::cout << buff;
-                check_requ(buff, c);
-            }
-			else if (fds[i].revents & POLLOUT){
-				count++;
-				// std::cout << "POLLOUT" << std::endl;
-				///
+				fds[nfds].fd = c->getClientsock();
+				fds[nfds].events = POLLIN | POLLOUT;
+				++nfds;
 			}
-        }
-	}
-	
+			//check request
+			for (int i = 1; i < nfds ; ++i){
+				if (fds[i].revents & POLLIN){
+					// std::cout << "client fd: " << fds[i].fd << std::endl;
+					char buff[1024];
+					int read = recv(fds[i].fd, buff, sizeof(buff), 0);
+					if (read == -1)
+						throw std::runtime_error("Failed recv: " + std::string(std::strerror(errno)));
+					buff[read] = '\0';
+					// std::cerr << buff << std::endl;
+					check_requ(buff, c);
+					c->printClient();
+				}
+			}
+	}	
 }
 

@@ -8,7 +8,6 @@
 #include <algorithm>
 
 #define IRC true
-
 class client;
 
 class	server {
@@ -19,7 +18,7 @@ private:
 	sockaddr_in			_server_addr;
 	socklen_t			_addr_len;
 	std::list<client*>	_clients;
-	int 				activity;
+	int 				_activity;
 public:
 	// Orthedox Form
 	server();
@@ -29,8 +28,10 @@ public:
 
 	// Server Setup
 	void	launch(std::string	passwd, std::string	port);
+	int 	open_socket();
 	void 	setpoll(int);
 	void 	check_requ(std::string , client *);
+	void	sendMessage(client	*from , client *to, const std::string& msg) const;
 };
 
 #endif

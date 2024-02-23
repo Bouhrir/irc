@@ -5,11 +5,13 @@
 #include"head.hpp"
 
 #define MAX_CLIENT 256
+#define BUFFER_SIZE 1024
 class	client {
 private:
 	bool			_active;
 	std::string		_username;
 	std::string		_nickname;
+	std::string		_ipaddress;
 	int				_client_sock;
 	char			_buff[BUFFER_SIZE];
 public:
@@ -28,6 +30,7 @@ public:
 	// Setters
 	void	setUsername( std::string& Username );
 	void	setNickname( std::string& Nickname );
+	void	setIpAddress( std::string& IpAddress );
 	void	setClientsock(int socket);
 	void 	setActive(bool);
 
@@ -37,6 +40,9 @@ public:
 	int				getClientsock() const ;
 	sockaddr_in 	getClientaddr() const ;
 
+	// Methods
+	void	printClient() const;
 };
+
 
 #endif
