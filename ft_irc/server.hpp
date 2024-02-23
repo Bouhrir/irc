@@ -8,7 +8,6 @@
 #include <algorithm>
 
 #define IRC true
-
 class client;
 
 class	server {
