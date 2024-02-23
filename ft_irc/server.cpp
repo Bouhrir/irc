@@ -145,40 +145,51 @@ void	server::launch(std::string	passwd, std::string	port) {
 
 	std::cout << "\033[1;42mThe server is listening on the port\033[0m ==> " << "\033[1;41m" << _port << "\033[0m" <<  std::endl;
 	
-	struct pollfd fds[MAX_CLIENT + 1];
+	std::vector<struct pollfd> fds(MAX_CLIENT + 1);
 	
-	fds[0].fd = _server_sock;
-	fds[0].events = POLLIN;
-	size_t nfds = 1;
+    // Add the server socket to the fds vector
+    fds[0].fd = _server_sock;
+    fds[0].events = POLLIN;
+    size_t nfds = 1;
 
-	while (IRC){
-			//multiplexing
-			setpoll(poll(fds, nfds, -1));
+    while (IRC) {
+        // multiplexing
+        setpoll(poll(&fds[0], nfds, -1));
 
-			client *c;
-			if (fds[0].revents & POLLIN){
-				c = new client();
+        client *c;
+        if (fds[0].revents & POLLIN) {
+            c = new client();
 
-				c->setClientsock(accept(_server_sock, reinterpret_cast<sockaddr *>(&c->_client_addr), &c->_addr_len));
+            c->setClientsock(accept(_server_sock, reinterpret_cast<sockaddr *>(&c->_client_addr), &c->_addr_len));
 
-				fds[nfds].fd = c->getClientsock();
-				fds[nfds].events = POLLIN | POLLOUT;
-				++nfds;
-			}
-			//check request
-			for (size_t i = 1; i < nfds ; ++i){
-				if (fds[i].revents & POLLIN){
-					// std::cout << "client fd: " << fds[i].fd << std::endl;
-					char buff[1024];
-					int read = recv(fds[i].fd, buff, sizeof(buff), 0);
-					if (read == -1)
-						throw std::runtime_error("Failed recv: " + std::string(std::strerror(errno)));
-					buff[read] = '\0';
-					// std::cerr << buff << std::endl;
-					check_requ(buff, c);
-					c->printClient();
+            // Add the new client socket to the fds vector
+            fds[nfds].fd = c->getClientsock();
+            fds[nfds].events = POLLIN | POLLOUT;
+            ++nfds;
+        }
+
+        // check request
+        for (size_t i = 1; i < nfds; ++i) {
+            if (fds[i].revents & POLLIN) {
+                char buff[1024];
+                int read = recv(fds[i].fd, buff, sizeof(buff), 0);
+                if (read == -1)
+                    throw std::runtime_error("Failed recv: " + std::string(std::strerror(errno)));
+                buff[read] = '\0';
+                check_requ(buff, c);
+				if (fds[i].revents & (POLLHUP | POLLERR)){
+					//del user if disconnected
+					if (i > 0){
+						close(fds[i].fd);
+						fds.erase(fds.begin() + i);
+						std::list<client *>::iterator it = _clients.begin();
+						std::advance(it, i);
+						std::cerr << (*it)->getUsername() << ": disconnected" << std::endl;
+					}
 				}
-			}
-	}	
+                c->printClient();
+            }
+        }
+    }
 }
 
