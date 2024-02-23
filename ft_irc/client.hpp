@@ -3,6 +3,8 @@
 
 #include<iostream>
 #include"head.hpp"
+#include "server.hpp"
+class server;
 
 #define MAX_CLIENT 256
 #define BUFFER_SIZE 1024
