@@ -61,6 +61,9 @@ int				client::getClientsock() const {
 	return (_client_sock);
 }
 
+std::string		client::getIpaddress() const {
+	return _ipaddress;
+}
 // sockaddr_in 	client::getClientaddr() const {
 // 	return _client_addr;
 // }

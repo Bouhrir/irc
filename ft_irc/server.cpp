@@ -116,10 +116,22 @@ void server::check_requ(std::string str, client *Client){
 				throw std::runtime_error("Error: invalid password");
 			Client->setActive(true);
 		}
-	}
-	if (Client->getActive())
 		_clients.push_back(Client);
-	Client->printClient(); 
+		// std::list<client *>::iterator it = _clients.begin();
+		// // std::advance(it, ncl);
+		// for (; it != _clients.end(); ++it){
+		// std::cout << "\033[1;36mClient Information\033[0m" << std::endl;
+		// std::cout << "Client fd: " <<  (*it)->getClientsock() << std::endl;
+		// std::cout << "Username: " << (*it)->getUsername() << std::endl;
+		// std::cout << "Nickname: " << (*it)->getNickname() << std::endl;
+		// std::cout << "IP Address: " << (*it)->getIpaddress() << std::endl;
+		// }
+	}
+	// if (Client->getActive()){
+		// ncl++;
+	// }
+
+	// Client->printClient(); 
 }
 
 // Server Setup
@@ -131,7 +143,7 @@ void	server::launch(std::string	passwd, std::string	port) {
 	_server_addr.sin_family = AF_INET;
 	_server_addr.sin_port = htons(_port);
 	_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
+	ncl = 0;
 	int enable = 1;
 	if (setsockopt(_server_sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0)
 		throw std::runtime_error("Failed in setting socket option: " + std::string(strerror(errno)));

@@ -41,6 +41,7 @@ public:
 	int				getClientsock() const ;
 	sockaddr_in 	getClientaddr() const ;
 	bool 			getActive() const;
+	std::string		getIpaddress() const ;
 	// Methods
 	void	printClient() const;
 };

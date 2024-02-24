@@ -19,7 +19,9 @@ private:
 	socklen_t			_addr_len;
 	std::list<client*>	_clients;
 	int 				_activity;
+	int ncl;
 public:
+
 	// Orthedox Form
 	server();
 	server(const server& other);
