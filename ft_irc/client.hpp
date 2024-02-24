@@ -18,8 +18,7 @@ private:
 	char __unused	_buff[BUFFER_SIZE];
 public:
 
-	socklen_t		_addr_len;
-	sockaddr_in		_client_addr;
+	
 
 	// Orthedox Form
 	client();
@@ -41,7 +40,7 @@ public:
 	std::string		getNickname() const ;
 	int				getClientsock() const ;
 	sockaddr_in 	getClientaddr() const ;
-
+	bool 			getActive() const;
 	// Methods
 	void	printClient() const;
 };

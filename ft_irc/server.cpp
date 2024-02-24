@@ -82,7 +82,7 @@ bool validCAPLS(const std::string& message) {
 void server::check_requ(std::string str, client *Client){
 	std::stringstream iss(str);
 	std::string token;
-	// std::string tmp;
+	
 	if (!validCAPLS(str) && !fr)
 		return ;
 	while (std::getline(iss, token, '\n')) {
@@ -95,7 +95,8 @@ void server::check_requ(std::string str, client *Client){
 			iss >> username >> nickname >> ipAddress;
 
 			// Set's the client's object with the parsed information
-			std::cout << "username && address => " << username << "  " << ipAddress << std::endl;
+			// std::cout << "username && address => " << username << "  " << ipAddress << std::endl;
+
 			Client->setUsername(username);
 			Client->setIpAddress(ipAddress);
 		}
@@ -115,10 +116,10 @@ void server::check_requ(std::string str, client *Client){
 				throw std::runtime_error("Error: invalid password");
 			Client->setActive(true);
 		}
-
-		Client->printClient();
-		_clients.push_back(Client);
 	}
+	if (Client->getActive())
+		_clients.push_back(Client);
+	Client->printClient(); 
 }
 
 // Server Setup
@@ -156,37 +157,39 @@ void	server::launch(std::string	passwd, std::string	port) {
         // multiplexing
         setpoll(poll(&fds[0], nfds, -1));
 
-			client *c;
 			if (fds[0].revents & POLLIN){
-				c = new client;
-				c->setClientsock(accept(_server_sock, reinterpret_cast<sockaddr *>(&c->_client_addr), &c->_addr_len));
+				
+				socklen_t		_addr_len;
+				sockaddr_in		_client_addr;
+				int clientSocket = accept(_server_sock, reinterpret_cast<sockaddr *>(&_client_addr), &_addr_len);
+				if (clientSocket == -1)
+					throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
 
-				fds[nfds].fd = c->getClientsock();
+				fds[nfds].fd = clientSocket;
 				fds[nfds].events = POLLIN | POLLOUT;
 				++nfds;
 			}
 			//check request
 			for (size_t i = 1; i < nfds; ++i){
 				if (fds[i].revents & POLLIN){
-					std::cout << fds[i].fd << std::endl;
+					client *c = new client;
 					char buff[1024];
+					
 					int read = recv(fds[i].fd, buff, sizeof(buff), 0);
 					if (read == -1)
-						throw std::runtime_error("hbas hna");
+						throw std::runtime_error("Failed receving data" + std::string(strerror(errno)));
 					buff[read] = '\0';
+
+					c->setClientsock(fds[i].fd);
 					check_requ(buff, c);
 					if (fds[i].revents & (POLLHUP | POLLERR)){
 						//del user if disconnected
 						if (i > 0){
+							std::cerr << "<fd=" << fds[i].fd << "> " << ": disconnected" << std::endl;
 							close(fds[i].fd);
 							fds.erase(fds.begin() + i);
-							std::list<client *>::iterator it = _clients.begin();
-							std::advance(it, i);
-							if ((*it)->getUsername().c_str())
-								std::cerr << "fd=" << (*it)->getClientsock() << " => "<< (*it)->getUsername() << ": disconnected" << std::endl;
 						}
 					}
-					// c->printClient();
 				}
 			}
 	}

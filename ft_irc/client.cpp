@@ -61,10 +61,13 @@ int				client::getClientsock() const {
 	return (_client_sock);
 }
 
-sockaddr_in 	client::getClientaddr() const {
-	return _client_addr;
-}
+// sockaddr_in 	client::getClientaddr() const {
+// 	return _client_addr;
+// }
 
+bool client::getActive() const {
+	return _active;
+}
 
 // methods
 
