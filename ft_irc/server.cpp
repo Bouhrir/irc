@@ -70,32 +70,25 @@ void printascii(std::string ss){
 
 	std::cout << ss << " " << std::endl;
 }
-bool fr = false;
+
 bool validCAPLS(const std::string& message) {
-	if (!message.compare(0, 6, "CAP LS")){
-		fr = true;
+	if (!message.compare(0, 6, "CAP LS")) {
 		return true;
 	}
     return false;
 }
 
-void server::check_requ(std::string str, client *Client){
-	std::stringstream iss(str);
-	std::string token;
-	
-	if (!validCAPLS(str) && !fr)
-		return ;
+void	server::new_client(std::stringstream& iss) {
+	std::string	token;
+	client *Client = new client();
+
 	while (std::getline(iss, token, '\n')) {
 		std::istringstream iss(token);
 		std::string command;
 		iss >> command;
-		// std::cout << "command " << command << std::endl;
 		if (!std::strncmp(command.c_str(), "USER", 4)){
 			std::string username, nickname, ipAddress;
 			iss >> username >> nickname >> ipAddress;
-
-			// Set's the client's object with the parsed information
-			// std::cout << "username && address => " << username << "  " << ipAddress << std::endl;
 
 			Client->setUsername(username);
 			Client->setIpAddress(ipAddress);
@@ -104,34 +97,41 @@ void server::check_requ(std::string str, client *Client){
 			std::string nickname;
 			iss >> nickname;
 
-			// std::cout << "nickname => " << nickname << std::endl;
 			Client->setNickname(nickname);
 		}
 		else if (!std::strncmp(command.c_str(), "PASS", 4)){
 			std::string passwd;
 			iss >> passwd;
 
-			// std::cout << "password => " << passwd << std::endl;
 			if (passwd != _passwd)
 				throw std::runtime_error("Error: invalid password");
 			Client->setActive(true);
 		}
-		_clients.push_back(Client);
-		// std::list<client *>::iterator it = _clients.begin();
-		// // std::advance(it, ncl);
-		// for (; it != _clients.end(); ++it){
-		// std::cout << "\033[1;36mClient Information\033[0m" << std::endl;
-		// std::cout << "Client fd: " <<  (*it)->getClientsock() << std::endl;
-		// std::cout << "Username: " << (*it)->getUsername() << std::endl;
-		// std::cout << "Nickname: " << (*it)->getNickname() << std::endl;
-		// std::cout << "IP Address: " << (*it)->getIpaddress() << std::endl;
-		// }
 	}
-	// if (Client->getActive()){
-		// ncl++;
-	// }
+	_clients.push_back(Client);
+}
 
-	// Client->printClient(); 
+void	server::handleMsg(std::stringstream& iss) {
+	std::string	token;
+	client *Client = client::getClient();
+
+}
+
+void server::check_requ(std::string str){
+	std::stringstream iss(str);
+	std::string token;
+	
+	if (validCAPLS(str))
+		new_client(iss);
+	else
+		handleMsg(iss);
+
+}
+
+
+int	check_new_client(std::string buff) {
+	std::istringstream  iss(buff);
+
 }
 
 // Server Setup
@@ -184,16 +184,15 @@ void	server::launch(std::string	passwd, std::string	port) {
 			//check request
 			for (size_t i = 1; i < nfds; ++i){
 				if (fds[i].revents & POLLIN){
-					client *c = new client;
 					char buff[1024];
 					
 					int read = recv(fds[i].fd, buff, sizeof(buff), 0);
 					if (read == -1)
 						throw std::runtime_error("Failed receving data" + std::string(strerror(errno)));
 					buff[read] = '\0';
-
-					c->setClientsock(fds[i].fd);
-					check_requ(buff, c);
+					// client *c = new client();
+					// c->setClientsock(fds[i].fd);
+					check_requ(buff);
 					if (fds[i].revents & (POLLHUP | POLLERR)){
 						//del user if disconnected
 						if (i > 0){

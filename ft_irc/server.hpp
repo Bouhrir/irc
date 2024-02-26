@@ -20,6 +20,10 @@ private:
 	std::list<client*>	_clients;
 	int 				_activity;
 	int ncl;
+
+	void	new_client(std::stringstream& iss);
+	void	handleMsg(std::stringstream& iss);
+
 public:
 
 	// Orthedox Form
@@ -32,7 +36,7 @@ public:
 	void	launch(std::string	passwd, std::string	port);
 	int 	open_socket();
 	void 	setpoll(int);
-	void 	check_requ(std::string , client *);
+	void 	check_requ( std::string );
 	void	sendMessage(client	*from , client *to, const std::string& msg) const;
 };
 
