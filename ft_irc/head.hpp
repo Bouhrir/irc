@@ -41,6 +41,7 @@ public:
 class client;
 class channel;
 
+void sendMessage(client	*from , client *to, const std::string& msg);
 // int	open_socket();
 
 #endif

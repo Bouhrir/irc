@@ -62,15 +62,15 @@ void	channel::kick(client *kicker, client *other) {
 	std::list<client*>::iterator it;
 
 	if (check_operator(*this, kicker) == false)
-		return (sendMessage(kicker, "You don't have the right to do that."));
+		return (sendMessage(&_server, kicker, "You don't have the right to do that."));
 
 	it = std::find(_members.begin(), _members.end(), other);
 	if (it == _invited.end()) {
-		sendMessage(kicker, "This user is not in this channel");
+		sendMessage(&_server, kicker, "This user is not in this channel");
 	} else {
 		_members.erase(it);
-		sendMessage(kicker, "User kicked from the channel");
-		sendMessage(other, "You have been kicked from the channel");
+		sendMessage(&_server, kicker, "User kicked from the channel");
+		sendMessage(&_server, other, "You have been kicked from the channel");
 	}
 }
 
@@ -78,21 +78,21 @@ void	channel::invite(client *inviter, client *other) {
 	std::list<client*>::iterator it;
 
 	if (check_operator(*this, inviter) == false)
-		return (sendMessage(inviter, "You don't have the right to do that."));
+		return (sendMessage(&_server, inviter, "You don't have the right to do that."));
 
 	it = std::find(_invited.begin(), _invited.end(), other);
 	if (it != _invited.end()) {
-		sendMessage(inviter, "This user is already invited in this channel.");
+		sendMessage(&_server, inviter, "This user is already invited in this channel.");
 	} else {
 		_invited.push_back(other);
-		sendMessage(other, "You have been invited to join the channel " + this->_name + ".");
+		sendMessage(&_server, other, "You have been invited to join the channel " + this->_name + ".");
 	}
 }
 
 void	channel::topic(client *other) {
 	if (check_operator(*this, other) == false)
-		return (sendMessage(other, "You don't have the right to do that."));
-	// setTopic()
+		return (sendMessage(&_server, other, "You don't have the right to do that."));
+	// setTopic();
 }
 
 void	channel::mode() {
