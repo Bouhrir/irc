@@ -113,14 +113,25 @@ void	server::new_client(std::stringstream& iss) {
 
 void	server::handleMsg(std::stringstream& iss) {
 	std::string	token;
-	client *Client = client::getClient();
+	// client *Client = client::getClient();
+
+	while (std::getline(iss, token, '\n')){
+		if (!token.compare(0, 7, "PRIVMSG")){
+			std::stringstream ss(token);
+			std::string prvmsg, user, msg;
+			ss >> prvmsg >> user >> msg;
+			std::cout << msg << std::endl;
+
+		}
+
+	}
+ 
 
 }
 
 void server::check_requ(std::string str){
 	std::stringstream iss(str);
 	std::string token;
-	
 	if (validCAPLS(str))
 		new_client(iss);
 	else
@@ -132,6 +143,7 @@ void server::check_requ(std::string str){
 int	check_new_client(std::string buff) {
 	std::istringstream  iss(buff);
 
+	return 1;
 }
 
 // Server Setup
@@ -190,8 +202,6 @@ void	server::launch(std::string	passwd, std::string	port) {
 					if (read == -1)
 						throw std::runtime_error("Failed receving data" + std::string(strerror(errno)));
 					buff[read] = '\0';
-					// client *c = new client();
-					// c->setClientsock(fds[i].fd);
 					check_requ(buff);
 					if (fds[i].revents & (POLLHUP | POLLERR)){
 						//del user if disconnected
