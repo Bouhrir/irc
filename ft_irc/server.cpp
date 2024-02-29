@@ -1,5 +1,6 @@
 #include "server.hpp"
 #include "client.hpp"
+#include "head.hpp"
 
 static	int	my_atoi(std::string& str) {
     size_t	i = 0;
@@ -31,7 +32,7 @@ static	int	my_atoi(std::string& str) {
 }
 
 // Orthedox Form
-server::server() : _port(0), _passwd("password") {
+server::server() : _port(0), _passwd("password"), nfds(1) {
 	_server_sock = 0;
 	_server_addr.sin_family = AF_INET;
 	_server_addr.sin_port = htons(_port);
@@ -78,11 +79,13 @@ bool validCAPLS(const std::string& message) {
     return false;
 }
 
-void	server::new_client(std::stringstream& iss) {
+void	server::new_client(std::stringstream& iss, int fd) {
 	std::string	token;
 	client *Client = new client();
-
+	Client->setClientsock(fd);
 	while (std::getline(iss, token, '\n')) {
+		
+		// std::cout << "hani" << std::endl;
 		std::istringstream iss(token);
 		std::string command;
 		iss >> command;
@@ -108,35 +111,103 @@ void	server::new_client(std::stringstream& iss) {
 			Client->setActive(true);
 		}
 	}
+	std::cout << "----newclient----\n";
+	Client->printClient();
 	_clients.push_back(Client);
 }
+// :obouhrir!oussama@88ABE6.25BF1D.D03F86.88C9BD.IP PRIVMSG obouhrir :slama sahbi
+// :obouhrir!oussama@88ABE6.25BF1D.D03F86.88C9BD.IP JOIN #general * :realnam
+std::string server::creatPong(std::string &token, client *c, std::string check){
+	// std::map<std::string, std::string> args;
+	std::stringstream iss(token);
+	std::string pong, skip, target;
+	iss >> skip >> target;
+	if (check == "prvmsg")
+		pong = ':' + c->getNickname() + '!' + c->getUsername() + '@' + c->getIpaddress() + " PRIVMSG " + target + " :" + msg + "\r\n"; 
+	else if (check == "join")
+		pong = ':' + c->getNickname() + '!' + c->getUsername() + '@' + c->getIpaddress() + " JOIN " + target + " * :realname\r\n";
+	return pong;
+}
 
-void	server::handleMsg(std::stringstream& iss) {
+bool server::validUser(std::string nick){
+	std::vector<client *>::iterator it = _clients.begin();
+	for (; it != _clients.end();++it){
+		if ((*it)->getNickname() == nick)
+			return true;
+	}
+	return false;
+}
+
+client*	server::getClient(int fd) {
+	for  (size_t i = 0; i < _clients.size(); ++i) {
+		if (_clients[i]->getClientsock() == fd){
+			return _clients[i];
+		}
+	}
+	return NULL;
+}
+
+void	server::handleMsg(std::stringstream& iss, int fdClient) {
 	std::string	token;
-	// client *Client = client::getClient();
-
+	std::string buffer;
+	client *Client = getClient(fdClient);
+	std::cout << "----msg----\n";
+	Client->printClient();
 	while (std::getline(iss, token, '\n')){
 		if (!token.compare(0, 7, "PRIVMSG")){
 			std::stringstream ss(token);
-			std::string prvmsg, user, msg;
-			ss >> prvmsg >> user >> msg;
-			std::cout << msg << std::endl;
+			std::string skip, nick;
+			ss >> skip >> nick;
+			if (validUser(nick))
+			{	
+				size_t pos = token.find_first_of(':');
+				if (pos != std::string::npos){
+					msg = token.substr(pos + 1);
+					std::string pong = creatPong(token, Client, "prvmsg");
+					send(Client->getClientsock(), pong.c_str(), pong.length(), 0);
+					std::cout << pong << std::endl;
+				}
+			}
+			else{
+				if (Client){
+					buffer = ERR_NOSUCHNICK(Client->getNickname(), nick);
+					send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+				}
+			}
+
+		}
+		else if (!token.compare(0, 4, "JOIN")){
+			std::stringstream iss(token);
+			std::string skip, channel;
+			iss >> skip >> channel;
+
+			size_t pos = channel.find_first_not_of('#');
+			if (pos != std::string::npos){
+				std::string pong = creatPong(token, Client, "join");
+				send(Client->getClientsock(), pong.c_str(), pong.size(), 0);
+				std::cout << pong << std::endl;
+			}
+			else {
+				if (Client)
+				{
+					buffer = ERR_NOSUCHCHANNEL(Client->getNickname(), channel);
+					send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+				}
+			}
+
 
 		}
 
 	}
- 
-
 }
 
-void server::check_requ(std::string str){
+void server::check_requ(std::string str, int fd){
 	std::stringstream iss(str);
-	std::string token;
-	if (validCAPLS(str))
-		new_client(iss);
-	else
-		handleMsg(iss);
 
+	if (validCAPLS(str))
+		new_client(iss, fd);
+	else
+		handleMsg(iss, fd);
 }
 
 
@@ -155,7 +226,6 @@ void	server::launch(std::string	passwd, std::string	port) {
 	_server_addr.sin_family = AF_INET;
 	_server_addr.sin_port = htons(_port);
 	_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	ncl = 0;
 	int enable = 1;
 	if (setsockopt(_server_sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0)
 		throw std::runtime_error("Failed in setting socket option: " + std::string(strerror(errno)));
@@ -169,49 +239,44 @@ void	server::launch(std::string	passwd, std::string	port) {
 	}
 
 	std::cout << "\033[1;42mThe server is listening on the port\033[0m ==> " << "\033[1;41m" << _port << "\033[0m" <<  std::endl;
-	
 	std::vector<struct pollfd> fds(MAX_CLIENT + 1);
-	
     // Add the server socket to the fds vector
     fds[0].fd = _server_sock;
     fds[0].events = POLLIN;
-    size_t nfds = 1;
 
     while (IRC) {
         // multiplexing
         setpoll(poll(&fds[0], nfds, -1));
 
-			if (fds[0].revents & POLLIN){
-				
-				socklen_t		_addr_len;
-				sockaddr_in		_client_addr;
-				int clientSocket = accept(_server_sock, reinterpret_cast<sockaddr *>(&_client_addr), &_addr_len);
-				if (clientSocket == -1)
-					throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
+		if (fds[0].revents & POLLIN){
+			
+			int clientSocket = accept(_server_sock, reinterpret_cast<sockaddr *>(&_client_addr), &_c_addr_len);
+			if (clientSocket == -1)
+				throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
 
-				fds[nfds].fd = clientSocket;
-				fds[nfds].events = POLLIN | POLLOUT;
-				++nfds;
-			}
-			//check request
-			for (size_t i = 1; i < nfds; ++i){
-				if (fds[i].revents & POLLIN){
-					char buff[1024];
-					
-					int read = recv(fds[i].fd, buff, sizeof(buff), 0);
-					if (read == -1)
-						throw std::runtime_error("Failed receving data" + std::string(strerror(errno)));
-					buff[read] = '\0';
-					check_requ(buff);
-					if (fds[i].revents & (POLLHUP | POLLERR)){
-						//del user if disconnected
-						if (i > 0){
-							std::cerr << "<fd=" << fds[i].fd << "> " << ": disconnected" << std::endl;
-							close(fds[i].fd);
-							fds.erase(fds.begin() + i);
-						}
+			fds[nfds].fd = clientSocket;
+			fds[nfds].events = POLLIN | POLLOUT;
+			++nfds;
+		}
+		//check request
+		for (size_t i = 1; i < nfds; ++i){
+			if (fds[i].revents & POLLIN){
+				char buff[1024];
+				
+				int read = recv(fds[i].fd, buff, sizeof(buff), 0);
+				if (read == -1)
+					throw std::runtime_error("Failed receving data" + std::string(strerror(errno)));
+				buff[read] = '\0';
+				check_requ(buff, fds[i].fd);
+				if (fds[i].revents & (POLLHUP | POLLERR)){
+					//del user if disconnected
+					if (i > 0){
+						std::cerr << "<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected" << std::endl;
+						close(fds[i].fd);
+						fds.erase(fds.begin() + i);
 					}
 				}
 			}
+		}
 	}
 }

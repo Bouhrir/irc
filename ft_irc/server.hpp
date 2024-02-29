@@ -3,10 +3,11 @@
 
 #include"head.hpp"
 #include<list>
+#include <vector>
 #include <poll.h>
 #include <sstream>
 #include <algorithm>
-
+#include <map>
 #define IRC true
 class client;
 
@@ -17,15 +18,18 @@ private:
 	int					_server_sock;
 	sockaddr_in			_server_addr;
 	socklen_t			_addr_len;
-	std::list<client*>	_clients;
+	std::vector<client*>	_clients;
 	int 				_activity;
-	int ncl;
-
-	void	new_client(std::stringstream& iss);
-	void	handleMsg(std::stringstream& iss);
+    size_t nfds;
+	
+	void				new_client(std::stringstream& iss, int);
+	void				handleMsg(std::stringstream& iss, int);
+	client*				getClient(int fd);
+	std::string 		msg;
 
 public:
-
+	socklen_t		_c_addr_len;
+	sockaddr_in		_client_addr;
 	// Orthedox Form
 	server();
 	server(const server& other);
@@ -36,8 +40,11 @@ public:
 	void	launch(std::string	passwd, std::string	port);
 	int 	open_socket();
 	void 	setpoll(int);
-	void 	check_requ( std::string );
+	void 	check_requ( std::string , int);
 	void	sendMessage(client	*from , client *to, const std::string& msg) const;
+	///
+	std::string 	creatPong(std::string &, client *, std::string ) ;
+	bool validUser(std::string user);
 };
 
 #endif
