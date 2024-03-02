@@ -89,20 +89,7 @@ void	server::new_client(std::stringstream& iss, int fd) {
 		std::istringstream iss(token);
 		std::string command;
 		iss >> command;
-		if (!std::strncmp(command.c_str(), "USER", 4)){
-			std::string username, nickname, ipAddress;
-			iss >> username >> nickname >> ipAddress;
-
-			Client->setUsername(username);
-			Client->setIpAddress(ipAddress);
-		}
-		else if (!std::strncmp(command.c_str(), "NICK", 4)){
-			std::string nickname;
-			iss >> nickname;
-
-			Client->setNickname(nickname);
-		}
-		else if (!std::strncmp(command.c_str(), "PASS", 4)){
+		if (!std::strncmp(command.c_str(), "PASS", 4)){
 			std::string passwd;
 			iss >> passwd;
 
@@ -110,9 +97,23 @@ void	server::new_client(std::stringstream& iss, int fd) {
 				throw std::runtime_error("Error: invalid password");
 			Client->setActive(true);
 		}
+		else if (!std::strncmp(command.c_str(), "USER", 4) && Client->getActive()){
+			std::string username, nickname, ipAddress;
+			iss >> username >> nickname >> ipAddress;
+
+			Client->setUsername(username);
+			Client->setIpAddress(ipAddress);
+		}
+		else if (!std::strncmp(command.c_str(), "NICK", 4) && Client->getActive()){
+			std::string nickname;
+			iss >> nickname;
+
+			Client->setNickname(nickname);
+		}
 	}
 	std::cout << "----newclient----\n";
-	Client->printClient();
+	if (Client)
+		Client->printClient();
 	_clients.push_back(Client);
 }
 // :obouhrir!oussama@88ABE6.25BF1D.D03F86.88C9BD.IP PRIVMSG obouhrir :slama sahbi
@@ -152,7 +153,8 @@ void	server::handleMsg(std::stringstream& iss, int fdClient) {
 	std::string buffer;
 	client *Client = getClient(fdClient);
 	std::cout << "----msg----\n";
-	Client->printClient();
+	if (Client)
+		Client->printClient();
 	while (std::getline(iss, token, '\n')){
 		if (!token.compare(0, 7, "PRIVMSG")){
 			std::stringstream ss(token);
@@ -160,7 +162,7 @@ void	server::handleMsg(std::stringstream& iss, int fdClient) {
 			ss >> skip >> nick;
 			if (validUser(nick))
 			{	
-				size_t pos = token.find_first_of(':');
+				size_t pos = token.find(':');
 				if (pos != std::string::npos){
 					msg = token.substr(pos + 1);
 					std::string pong = creatPong(token, Client, "prvmsg");
@@ -170,7 +172,7 @@ void	server::handleMsg(std::stringstream& iss, int fdClient) {
 			}
 			else{
 				if (Client){
-					buffer = ERR_NOSUCHNICK(Client->getNickname(), nick);
+					buffer = ":localhost " + ERR_NOSUCHNICK(Client->getNickname(), nick);
 					send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
 				}
 			}
@@ -181,7 +183,7 @@ void	server::handleMsg(std::stringstream& iss, int fdClient) {
 			std::string skip, channel;
 			iss >> skip >> channel;
 
-			size_t pos = channel.find_first_not_of('#');
+			size_t pos = channel.find('#');
 			if (pos != std::string::npos){
 				std::string pong = creatPong(token, Client, "join");
 				send(Client->getClientsock(), pong.c_str(), pong.size(), 0);
@@ -190,7 +192,7 @@ void	server::handleMsg(std::stringstream& iss, int fdClient) {
 			else {
 				if (Client)
 				{
-					buffer = ERR_NOSUCHCHANNEL(Client->getNickname(), channel);
+					buffer = ":localhost " +  ERR_NOSUCHCHANNEL(Client->getNickname(), channel);
 					send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
 				}
 			}
@@ -204,8 +206,9 @@ void	server::handleMsg(std::stringstream& iss, int fdClient) {
 void server::check_requ(std::string str, int fd){
 	std::stringstream iss(str);
 
-	if (validCAPLS(str))
+	if (validCAPLS(str)){
 		new_client(iss, fd);
+	}
 	else
 		handleMsg(iss, fd);
 }
