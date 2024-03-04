@@ -1,7 +1,7 @@
 #include "server.hpp"
 #include "client.hpp"
 #include "head.hpp"
-
+#include "stdio.h"
 static	int	my_atoi(std::string& str) {
     size_t	i = 0;
     int		result = 0;
@@ -81,8 +81,7 @@ bool validCAPLS(const std::string& message) {
 
 void	server::new_client(std::stringstream& iss, int fd) {
 	std::string	token;
-	client *Client = new client();
-	Client->setClientsock(fd);
+	client *Client = new client(fd);
 	while (std::getline(iss, token, '\n')) {
 		
 		// std::cout << "hani" << std::endl;
@@ -110,6 +109,7 @@ void	server::new_client(std::stringstream& iss, int fd) {
 
 			Client->setNickname(nickname);
 		}
+		usleep(100);
 	}
 	std::cout << "----newclient----\n";
 	if (Client)
@@ -196,8 +196,6 @@ void	server::handleMsg(std::stringstream& iss, int fdClient) {
 					send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
 				}
 			}
-
-
 		}
 
 	}
@@ -246,7 +244,6 @@ void	server::launch(std::string	passwd, std::string	port) {
     // Add the server socket to the fds vector
     fds[0].fd = _server_sock;
     fds[0].events = POLLIN;
-
     while (IRC) {
         // multiplexing
         setpoll(poll(&fds[0], nfds, -1));
@@ -259,10 +256,11 @@ void	server::launch(std::string	passwd, std::string	port) {
 
 			fds[nfds].fd = clientSocket;
 			fds[nfds].events = POLLIN | POLLOUT;
+			srand(time(NULL));
 			++nfds;
 		}
 		//check request
-		for (size_t i = 1; i < nfds; ++i){
+		for (size_t i = 1; i < fds.size(); ++i){
 			if (fds[i].revents & POLLIN){
 				char buff[1024];
 				
