@@ -25,8 +25,10 @@ private:
     size_t nfds;
 	
 	void				new_client(std::string& , int);
-	void				handleMsg(std::stringstream& iss, int);
+	void				handleMsg(std::string& , int);
 	client*				getClient(int fd);
+	client*				getClient(std::string nick);
+	bool				validPASS(std::stringstream &iss);
 	std::string 		msg;
 
 public:

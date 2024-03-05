@@ -159,9 +159,11 @@ std::string server::creatPong(std::string &token, client *c, std::string check){
 		pong = ':' + c->getNickname() + '!' + c->getUsername() + '@' + c->getIpaddress() + " PRIVMSG " + target + " :" + msg + "\r\n"; 
 	else if (check == "join") {
 		if (chackIfChannelExists(target)) {
+			puts("deja");
 			channel* chan = getChannel(target);
 			chan ->addMember(c);
 		} else {
+			puts("makinax");
 			channel *newChan = new channel(target, "", "random");
 			_channels.push_back(newChan);
 			newChan->addMember(c);
@@ -197,7 +199,8 @@ client*	server::getClient(std::string nick) {
 	return NULL;
 }
 
-void	server::handleMsg(std::stringstream& iss, int fdClient) {
+void	server::handleMsg(std::string& str, int fdClient) {
+	std::stringstream iss(str);
 	std::string	token;
 	std::string buffer;
 	client *Client = getClient(fdClient);
@@ -236,7 +239,7 @@ void	server::handleMsg(std::stringstream& iss, int fdClient) {
 			size_t pos = channel.find('#');
 			if (pos != std::string::npos){
 				std::string pong = creatPong(token, Client, "join");
-				send(Client->getClientsock(), pong.c_str(), pong.size(), 0);
+				// send(Client->getClientsock(), pong.c_str(), pong.size(), 0);
 				std::cout << pong << std::endl;
 			}
 			else {
@@ -259,7 +262,7 @@ void server::check_requ(std::string str, int fd){
 		new_client(str, fd);
 	}
 	else
-		handleMsg(iss, fd);
+		handleMsg(str, fd);
 }
 
 
