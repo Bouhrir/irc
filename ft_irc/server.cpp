@@ -72,19 +72,29 @@ void printascii(std::string ss){
 	std::cout << ss << " " << std::endl;
 }
 
-bool validCAPLS(const std::string& message) {
-	if (!message.compare(0, 6, "CAP LS")) {
-		return true;
+bool server::validPASS(std::stringstream &iss) {
+	std::string token;
+	while (std::getline(iss, token, '\n')){
+		std::stringstream inc(token);
+		std::string pass;
+		inc >> pass;
+		if (!pass.compare(0, 4,"PASS")){
+			std::string passwd;
+			inc >> passwd;
+			if (passwd == _passwd){
+				return true;
+			}
+		}
 	}
-    return false;
+	return false;
 }
-
-void	server::new_client(std::stringstream& iss, int fd) {
+void	server::new_client(std::string& str, int fd) {
 	std::string	token;
-	client *Client = new client(fd);
-	while (std::getline(iss, token, '\n')) {
+	std::string ip(inet_ntoa(_client_addr.sin_addr));
+	client *Client = new client(fd, ip);
+	std::stringstream ss(str);
+	while (std::getline(ss, token, '\n')) {
 		
-		// std::cout << "hani" << std::endl;
 		std::istringstream iss(token);
 		std::string command;
 		iss >> command;
@@ -101,7 +111,8 @@ void	server::new_client(std::stringstream& iss, int fd) {
 			iss >> username >> nickname >> ipAddress;
 
 			Client->setUsername(username);
-			Client->setIpAddress(ipAddress);
+			std::string ip(inet_ntoa(_client_addr.sin_addr));
+			Client->setIpAddress(ip);
 		}
 		else if (!std::strncmp(command.c_str(), "NICK", 4) && Client->getActive()){
 			std::string nickname;
@@ -201,11 +212,12 @@ void	server::handleMsg(std::stringstream& iss, int fdClient) {
 	}
 }
 
+
 void server::check_requ(std::string str, int fd){
 	std::stringstream iss(str);
 
-	if (validCAPLS(str)){
-		new_client(iss, fd);
+	if (validPASS(iss)){
+		new_client(str, fd);
 	}
 	else
 		handleMsg(iss, fd);

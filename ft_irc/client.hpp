@@ -23,6 +23,7 @@ public:
 	// Orthedox Form
 	client();
 	client(int socket);
+	client(int socket, std::string & ip);
 	client(const client& other);
 	client &operator=(const client& other);
 	bool operator==(const client& other);
