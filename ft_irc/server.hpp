@@ -10,6 +10,7 @@
 #include <map>
 #define IRC true
 class client;
+class channel;
 
 class	server {
 private:
@@ -19,12 +20,14 @@ private:
 	sockaddr_in			_server_addr;
 	socklen_t			_addr_len;
 	std::vector<client*>	_clients;
+	std::vector<channel*>	_channels;
 	int 				_activity;
     size_t nfds;
 	
 	void				new_client(std::stringstream& iss, int);
 	void				handleMsg(std::stringstream& iss, int);
 	client*				getClient(int fd);
+	client*				getClient(std::string nick);
 	std::string 		msg;
 
 public:
@@ -45,6 +48,8 @@ public:
 	///
 	std::string 	creatPong(std::string &, client *, std::string ) ;
 	bool validUser(std::string user);
+	bool	chackIfChannelExists(const std::string name) const;
+	channel*	getChannel(std::string name);
 };
 
 #endif

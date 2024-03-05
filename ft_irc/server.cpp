@@ -116,6 +116,27 @@ void	server::new_client(std::stringstream& iss, int fd) {
 		Client->printClient();
 	_clients.push_back(Client);
 }
+
+void	join(client *c, channel& chan) {
+	chan.addMember(c);
+}
+
+bool	server::chackIfChannelExists(const std::string name) const {
+	for (size_t i = 0; i < _channels.size(); ++i) {
+		if (_channels[i]->getName() == name)
+			return true;
+	}
+	return false;
+}
+
+channel*	server::getChannel(std::string name) {
+	for (size_t i = 0; i < _channels.size(); ++i) {
+		if (_channels[i]->getName() == name)
+			return _channels[i];
+	}
+	return NULL;
+}
+
 // :obouhrir!oussama@88ABE6.25BF1D.D03F86.88C9BD.IP PRIVMSG obouhrir :slama sahbi
 // :obouhrir!oussama@88ABE6.25BF1D.D03F86.88C9BD.IP JOIN #general * :realnam
 std::string server::creatPong(std::string &token, client *c, std::string check){
@@ -125,8 +146,16 @@ std::string server::creatPong(std::string &token, client *c, std::string check){
 	iss >> skip >> target;
 	if (check == "prvmsg")
 		pong = ':' + c->getNickname() + '!' + c->getUsername() + '@' + c->getIpaddress() + " PRIVMSG " + target + " :" + msg + "\r\n"; 
-	else if (check == "join")
-		pong = ':' + c->getNickname() + '!' + c->getUsername() + '@' + c->getIpaddress() + " JOIN " + target + " * :realname\r\n";
+	else if (check == "join") {
+		if (chackIfChannelExists(target)) {
+			channel* chan = getChannel(target);
+			chan ->addMember(c);
+		} else {
+			channel *newChan = new channel(target, "", "random");
+			_channels.push_back(newChan);
+			newChan->addMember(c);
+		}
+	}
 	return pong;
 }
 
@@ -148,6 +177,15 @@ client*	server::getClient(int fd) {
 	return NULL;
 }
 
+client*	server::getClient(std::string nick) {
+	for  (size_t i = 0; i < _clients.size(); ++i) {
+		if (_clients[i]->getNickname() == nick){
+			return _clients[i];
+		}
+	}
+	return NULL;
+}
+
 void	server::handleMsg(std::stringstream& iss, int fdClient) {
 	std::string	token;
 	std::string buffer;
@@ -161,12 +199,13 @@ void	server::handleMsg(std::stringstream& iss, int fdClient) {
 			std::string skip, nick;
 			ss >> skip >> nick;
 			if (validUser(nick))
-			{	
+			{
+				client *c = getClient(nick);
 				size_t pos = token.find(':');
 				if (pos != std::string::npos){
 					msg = token.substr(pos + 1);
 					std::string pong = creatPong(token, Client, "prvmsg");
-					send(Client->getClientsock(), pong.c_str(), pong.length(), 0);
+					send(c->getClientsock(), pong.c_str(), pong.length(), 0);
 					std::cout << pong << std::endl;
 				}
 			}
