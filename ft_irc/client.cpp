@@ -1,11 +1,18 @@
 #include "client.hpp"
 
 // Orthedox Form
-client::client() : _username("username" + std::to_string(rand())), _nickname("nickname" + std::to_string(rand())) {
+client::client() : _username("username" + std::to_string(rand())), _nickname("nickname" + std::to_string(rand())){
 	_client_sock = 0;
 }
 
-client::client(int socket) : _username("username" + std::to_string(rand() % 3)), _nickname("nickname" + std::to_string(rand() % 3)) {
+
+client::client(int socket) : _username("username" + std::to_string(rand())), _nickname("nickname" + std::to_string(rand())) {
+	_client_sock = socket;
+	if (socket == -1)
+		throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
+}
+
+client::client(int socket, std::string & ip) : _username("username" + std::to_string(rand())), _nickname("nickname" + std::to_string(rand())) , _ipaddress(ip) {
 	_client_sock = socket;
 	if (socket == -1)
 		throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));

@@ -24,10 +24,9 @@ private:
 	int 				_activity;
     size_t nfds;
 	
-	void				new_client(std::stringstream& iss, int);
+	void				new_client(std::string& , int);
 	void				handleMsg(std::stringstream& iss, int);
 	client*				getClient(int fd);
-	client*				getClient(std::string nick);
 	std::string 		msg;
 
 public:
