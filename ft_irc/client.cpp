@@ -78,7 +78,9 @@ std::string		client::getIpaddress() const {
 bool client::getActive() const {
 	return _active;
 }
-
+std::string client::getForm()  {
+	return _nickname + '!' + _username + '@' + _ipaddress;
+}
 // methods
 
 void client::printClient() const {

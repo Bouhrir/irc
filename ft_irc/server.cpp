@@ -111,8 +111,7 @@ void	server::new_client(std::string& str, int fd) {
 			iss >> username >> nickname >> ipAddress;
 
 			Client->setUsername(username);
-			std::string ip(inet_ntoa(_client_addr.sin_addr));
-			Client->setIpAddress(ip);
+			Client->setIpAddress(ipAddress);
 		}
 		else if (!std::strncmp(command.c_str(), "NICK", 4) && Client->getActive()){
 			std::string nickname;
@@ -156,7 +155,7 @@ std::string server::creatPong(std::string &token, client *c, std::string check){
 	std::string pong, skip, target;
 	iss >> skip >> target;
 	if (check == "prvmsg")
-		pong = ':' + c->getNickname() + '!' + c->getUsername() + '@' + c->getIpaddress() + " PRIVMSG " + target + " :" + msg + "\r\n"; 
+		pong = ':' + c->getForm() + " PRIVMSG " + target + " :" + msg + "\r\n"; 
 	else if (check == "join") {
 		if (chackIfChannelExists(target)) {
 			puts("deja");

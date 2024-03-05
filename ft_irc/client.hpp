@@ -43,6 +43,7 @@ public:
 	sockaddr_in 	getClientaddr() const ;
 	bool 			getActive() const;
 	std::string		getIpaddress() const ;
+	std::string 	getForm();
 	// Methods
 	void	printClient() const;
 };
