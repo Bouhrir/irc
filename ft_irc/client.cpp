@@ -79,6 +79,10 @@ bool client::getActive() const {
 	return _active;
 }
 
+std::string client::getForm() const {
+    return  this->getNickname() + '!' + this->getUsername() + '@' + this->getIpaddress();
+}
+
 // methods
 
 void client::printClient() const {

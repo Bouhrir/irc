@@ -31,6 +31,7 @@ private:
 	bool				validPASS(std::stringstream &iss);
 	std::string 		msg;
 
+	client				*_server;
 public:
 	socklen_t		_c_addr_len;
 	sockaddr_in		_client_addr;

@@ -111,8 +111,8 @@ void	server::new_client(std::string& str, int fd) {
 			iss >> username >> nickname >> ipAddress;
 
 			Client->setUsername(username);
-			std::string ip(inet_ntoa(_client_addr.sin_addr));
-			Client->setIpAddress(ip);
+			// std::string ip(inet_ntoa(_client_addr.sin_addr));
+			Client->setIpAddress(ipAddress);
 		}
 		else if (!std::strncmp(command.c_str(), "NICK", 4) && Client->getActive()){
 			std::string nickname;
@@ -164,7 +164,7 @@ std::string server::creatPong(std::string &token, client *c, std::string check){
 			chan ->addMember(c);
 		} else {
 			puts("makinax");
-			channel *newChan = new channel(target, "", "random");
+			channel *newChan = new channel(target, _server);
 			_channels.push_back(newChan);
 			newChan->addMember(c);
 		}
@@ -277,6 +277,7 @@ void	server::launch(std::string	passwd, std::string	port) {
 	_port = my_atoi(port);
 	_passwd = passwd;
 	_server_sock = open_socket();
+	_server = new client(_server_sock);
 
 	_server_addr.sin_family = AF_INET;
 	_server_addr.sin_port = htons(_port);

@@ -18,8 +18,6 @@ private:
 	char __unused	_buff[BUFFER_SIZE];
 public:
 
-	
-
 	// Orthedox Form
 	client();
 	client(int socket);
@@ -43,6 +41,7 @@ public:
 	sockaddr_in 	getClientaddr() const ;
 	bool 			getActive() const;
 	std::string		getIpaddress() const ;
+	std::string 	getForm() const ;
 	// Methods
 	void	printClient() const;
 };
