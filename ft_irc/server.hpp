@@ -23,6 +23,8 @@ private:
 	std::vector<channel*>	_channels;
 	int 				_activity;
     size_t nfds;
+	std::string	_token;
+
 	
 	void				new_client(std::string& , int);
 	void				handleMsg(std::string& , int);
@@ -52,6 +54,17 @@ public:
 	bool validUser(std::string user);
 	bool	chackIfChannelExists(const std::string name) const;
 	channel*	getChannel(std::string name);
+
+	///commands
+	void who(client *);
+	void user(client *);
+	void nick(client *);
+	void join(client *);
+	void privmsg(client *);
+	void topic(client *);
+	void invite(client *);
+	void mode(client *);
+	void kick(client *);
 };
 
 #endif

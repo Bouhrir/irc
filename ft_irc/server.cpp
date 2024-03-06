@@ -198,56 +198,125 @@ client*	server::getClient(std::string nick) {
 	return NULL;
 }
 
+void server::who(client *Client){
+	std::cout << "who\n";
+}
+void server::user(client *Client){
+	std::cout << "user\n";
+
+}
+void server::nick(client *Client){
+	std::cout << "nick\n";
+
+}
+void server::join(client *Client){
+	std::cout << "join\n";
+	std::stringstream iss(_token);
+	std::string skip, channel, buffer;
+	iss >> skip >> channel;
+
+	size_t pos = channel.find('#');
+	if (pos != std::string::npos){
+		std::string pong = creatPong(_token, Client, "join");
+		// send(Client->getClientsock(), pong.c_str(), pong.size(), 0);
+		std::cout << pong << std::endl;
+	}
+	else {
+		if (Client)
+		{
+			buffer = ":localhost " +  ERR_NOSUCHCHANNEL(Client->getNickname(), channel);
+			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+		}
+	}
+
+}
+void server::privmsg(client *Client){
+	std::cout << "privmsg\n";
+	std::string buffer;
+	std::stringstream ss(_token);
+	std::string skip, nick;
+	ss >> skip >> nick;
+	if (validUser(nick))
+	{
+		client *c = getClient(nick);
+		size_t pos = _token.find(':');
+		if (pos != std::string::npos){
+			msg = _token.substr(pos + 1);
+			std::string pong = creatPong(_token, Client, "prvmsg");
+			send(c->getClientsock(), pong.c_str(), pong.length(), 0);
+			std::cout << pong << std::endl;
+		}
+	}
+	else{
+		buffer = ":localhost " + ERR_NOSUCHNICK(Client->getNickname(), nick);
+		send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+	}
+
+}
+void server::topic(client *Client){
+	std::cout << "topic\n";
+
+}
+void server::invite(client *Client){
+	std::cout << "invite\n";
+
+}
+void server::mode(client *Client){
+	std::cout << "mode\n";
+
+}
+void server::kick(client *Client){
+	std::cout << "kick\n";
+
+}
 void	server::handleMsg(std::string& str, int fdClient) {
 	std::stringstream iss(str);
-	std::string	token;
-	std::string buffer;
 	client *Client = getClient(fdClient);
 	std::cout << "----msg----\n";
 	if (Client)
 		Client->printClient();
-	while (std::getline(iss, token, '\n')){
-		if (!token.compare(0, 7, "PRIVMSG")){
-			std::stringstream ss(token);
-			std::string skip, nick;
-			ss >> skip >> nick;
-			if (validUser(nick))
-			{
-				client *c = getClient(nick);
-				size_t pos = token.find(':');
-				if (pos != std::string::npos){
-					msg = token.substr(pos + 1);
-					std::string pong = creatPong(token, Client, "prvmsg");
-					send(c->getClientsock(), pong.c_str(), pong.length(), 0);
-					std::cout << pong << std::endl;
-				}
-			}
-			else{
-				if (Client){
-					buffer = ":localhost " + ERR_NOSUCHNICK(Client->getNickname(), nick);
-					send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
-				}
-			}
+	std::string arr[] = {"WHO" ,"USER" ,"NICK" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"KICK"};
 
+	void (server::*env[9])(client *) = {&server::who, &server::user, &server::nick, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::mode};
+	int i = 0;
+	while (std::getline(iss, _token, '\n')){
+		std::stringstream os(_token);
+		std::string cmd;
+		os >> cmd;
+		for(; i < 9; ++i){
+			if (cmd == arr[i])
+				break;
 		}
-		else if (!token.compare(0, 4, "JOIN")){
-			std::stringstream iss(token);
-			std::string skip, channel;
-			iss >> skip >> channel;
-
-			size_t pos = channel.find('#');
-			if (pos != std::string::npos){
-				std::string pong = creatPong(token, Client, "join");
-				// send(Client->getClientsock(), pong.c_str(), pong.size(), 0);
-				std::cout << pong << std::endl;
-			}
-			else {
-				if (Client)
-				{
-					buffer = ":localhost " +  ERR_NOSUCHCHANNEL(Client->getNickname(), channel);
-					send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
-				}
-			}
+		switch(i){
+			case 0:
+				(this->*(env[0]))(Client);
+				break;
+			case 1:
+				(this->*(env[1]))(Client);
+				break;
+			case 2:
+				(this->*(env[2]))(Client);
+				break;
+			case 3:
+				(this->*(env[3]))(Client);
+				break;
+			case 4:
+				(this->*(env[4]))(Client);
+				break;
+			case 5:
+				(this->*(env[5]))(Client);
+				break;
+			case 6:
+				(this->*(env[6]))(Client);
+				break;
+			case 7:
+				(this->*(env[7]))(Client);
+				break;
+			case 8:
+				(this->*(env[8]))(Client);
+				break;
+			default:
+				break;
 		}
 
 	}
