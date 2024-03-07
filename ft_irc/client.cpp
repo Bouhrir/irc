@@ -42,7 +42,7 @@ void	client::setUsername( std::string& Username ) {
 void	client::setNickname( std::string& Nickname ) {
 	_nickname = Nickname;
 }
-void	client::setIpAddress( std::string& IpAddress ) {
+void	client::setIpAddress( std::string IpAddress ) {
 	_ipaddress = IpAddress;
 }
 void	client::setClientsock(int socket) {
@@ -87,17 +87,6 @@ std::string client::getForm() const {
 
 void client::printClient() const {
     std::cout << "\033[1;36mClient Information\033[0m" << std::endl;
-    std::cout << "Client fd: " <<  getClientsock() << std::endl;
-    std::cout << "Username: " << _username << std::endl;
-    std::cout << "Nickname: " << _nickname << std::endl;
-    std::cout << "IP Address: " << _ipaddress << std::endl;
-
-}
-
-// methods
-
-void client::printClient() const {
-    std::cout << "Client Information:" << std::endl;
     std::cout << "Client fd: " <<  getClientsock() << std::endl;
     std::cout << "Username: " << _username << std::endl;
     std::cout << "Nickname: " << _nickname << std::endl;

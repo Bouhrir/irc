@@ -7,7 +7,7 @@
 class server;
 
 #define MAX_CLIENT 256
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 4096
 class	client {
 private:
 	bool			_active;
@@ -15,7 +15,7 @@ private:
 	std::string		_nickname;
 	std::string		_ipaddress;
 	int				_client_sock;
-	char __unused	_buff[BUFFER_SIZE];
+	char 	_buff[BUFFER_SIZE];
 public:
 
 	// Orthedox Form
@@ -30,7 +30,7 @@ public:
 	// Setters
 	void	setUsername( std::string& Username );
 	void	setNickname( std::string& Nickname );
-	void	setIpAddress( std::string& IpAddress );
+	void	setIpAddress( std::string IpAddress );
 	void	setClientsock(int socket);
 	void 	setActive(bool);
 

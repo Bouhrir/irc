@@ -52,22 +52,27 @@ channel::~channel() {
 
 
 // Setters
-void	channel::setName(std::string& Name) {
+void	channel::setName(std::string Name) {
 	_name = Name;
 }
-void	channel::setPasswd(std::string& Passwd) {
+void	channel::setPasswd(std::string Passwd) {
 	_passwd = Passwd;
 }
-void	channel::setTopic(std::string& Topic) {
+void	channel::setTopic(std::string Topic) {
 	_topic = Topic;
 }
+void	channel::setModes(std::string Modes) {
+	_modes +=  Modes;
+}
+
 void	channel::addMember(client *cl) {
 	_members.push_back(cl);
 	RPL_join(cl);
-	
 }
 
-
+void	channel::addOperator(client *cl) {
+	_operators.push_back(cl);
+}
 
 // Getters
 std::string	channel::getName() {
@@ -127,7 +132,7 @@ void	channel::who(client *cl, client *user) {
 	response += user->getNickname() + " H";
 	if (isOperator(user))
 		response += "@";
-	response += ":0 realname\r\n";
+	response += " :0 realname\r\n";
 	sendMessage(_server, cl,  response);
 }
 
@@ -146,10 +151,24 @@ void	channel::RPL_join(client *cl) {
 	sendToAllMembers(response);
 }
 
-void	channel::RPL_mode(client *cl) {
 
+void	channel::RPL_list(client *cl) {
+	std::string response;
+
+	response += ":" + _server->getIpaddress() + " 353 " + cl->getNickname() + " = ";
+	response += _name + " :";
+	for (size_t i = 0; i < _members.size(); ++i) {
+		if (isOperator(_members[i]))
+			response +=  "@";
+		response += _members[i]->getNickname() + " ";
+	}
+	response += "\r\n";
+	sendMessage(_server, cl, response);
 }
 
+void	channel::RPL_mode(client *cl) {
+	sendMessage(_server, cl, ":localhost " + RPL_CHANNELMODEIS(cl->getNickname(), _name, _modes));
+}
 
 
 // Methods
@@ -186,10 +205,9 @@ void	channel::sendChanInfo(client* cl) {
 	}
 	users += "\r\n";
 	sendMessage(_server, cl, users);
-	sendMessage(_server, cl, ":localhost " + RPL_ENDOFNAMES(cl->getNickname(), _name) + "\r\n");
-	sendMessage(_server, cl, ":localhost " + RPL_CHANNELMODEIS(cl->getNickname(), _name, _modes) + "\r\n");
-	sendMessage(_server, cl, ":localhost " + RPL_CREATIONTIME(cl->getNickname(), _name, _creationTime) + "\r\n");
-	sendMessage(_server, cl, ":localhost " + RPL_ENDOFWHOIS(cl->getNickname(), _name) + "\r\n");
+	sendMessage(_server, cl, ":localhost " + RPL_ENDOFNAMES(cl->getNickname(), _name));
+	sendMessage(_server, cl, ":localhost " + RPL_CREATIONTIME(cl->getNickname(), _name, _creationTime));
+	sendMessage(_server, cl, ":localhost " + RPL_ENDOFWHOIS(cl->getNickname(), _name));
 }
 
 void	channel::sendToAllMembers(const std::string &msg) {

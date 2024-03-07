@@ -21,7 +21,7 @@ private:
 	socklen_t			_addr_len;
 	std::vector<client*>	_clients;
 	std::vector<channel*>	_channels;
-	int 				__activity;
+	int 				_activity;
     size_t 				nfds;
 	std::string			_token;
 	int					_id;
@@ -47,7 +47,6 @@ public:
 	// Server Setup
 	void	launch(std::string	passwd, std::string	port);
 	int 	open_socket();
-	int 	open_socket();
 	void 	setpoll(int);
 	void 	check_requ( std::string , int);
 	void	sendMessage(client	*from , client *to, const std::string& msg) const;
@@ -59,15 +58,14 @@ public:
 	channel*	getChannel(std::string name);
 
 	///commands
-	void who(client *);
-	void user(client *);
-	void nick(client *);
-	void join(client *);
-	void privmsg(client *);
-	void topic(client *);
-	void invite(client *);
-	void mode(client *);
-	void kick(client *);
+	void who( client *, std::stringstream& );
+	void user( client *, std::stringstream& );
+	void nick( client *, std::stringstream& );
+	void join( client *, std::stringstream& );
+	void privmsg( client *, std::stringstream& );
+	void topic( client *, std::stringstream& );
+	void invite( client *, std::stringstream& );
+	void mode( client *, std::stringstream& );
+	void kick( client *, std::stringstream& );
 };
-
 #endif

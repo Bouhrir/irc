@@ -14,7 +14,7 @@ int	server::open_socket() {
 	return (sock);
 }
 
-void sendMessage(client	*from , client *to, const std::string& msg) {
+void server::sendMessage(client	*from , client *to, const std::string& msg) const {
 	std::string	err("Cannot send message: client is not active or socket is invalid");
     if (to->getClientsock() <= 0) {
 		// If the recipient is not connected, sends the message to

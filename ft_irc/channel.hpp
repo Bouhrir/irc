@@ -60,16 +60,19 @@ public:
 	~channel();
 
 	// Setters
-	void	setName(std::string& Name);
-	void	setPasswd(std::string& Passwd);
-	void	setTopic(std::string& Topic);
+	void	setName(std::string Name);
+	void	setPasswd(std::string Passwd);
+	void	setTopic(std::string Topic);
+	void	setModes(std::string Modes);
 	void	addMember(client *cl);
+	void	addOperator(client *cl);
 	// void	removeMember(client *cl);
 
 
 	// Getters
 	std::string				getName();
 	std::string				getTopic();
+	std::string				getModes();
 	std::string				getPasswd();
 	client*					getmember(int fd);
 	std::vector<client*>	getMembers();
@@ -85,6 +88,7 @@ public:
 	void	who(client *cl, client *user);
 	void	RPL_join(client *cl);
 	void	RPL_who(client *cl);
+	void	RPL_list(client *cl);
 	void	RPL_mode(client *cl);
 
 
