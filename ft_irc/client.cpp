@@ -12,7 +12,7 @@ client::client(int socket) : _username("username"), _nickname("nickname") {
 }
 
 
-client::client(const client& other) {
+client::client(const client& __unused other) {
 
 }
 
@@ -61,15 +61,21 @@ int				client::getClientsock() const {
 	return (_client_sock);
 }
 
-sockaddr_in 	client::getClientaddr() const {
-	return _client_addr;
+std::string		client::getIpaddress() const {
+	return _ipaddress;
 }
+// sockaddr_in 	client::getClientaddr() const {
+// 	return _client_addr;
+// }
 
+bool client::getActive() const {
+	return _active;
+}
 
 // methods
 
 void client::printClient() const {
-    std::cout << "Client Information:" << std::endl;
+    std::cout << "\033[1;36mClient Information\033[0m" << std::endl;
     std::cout << "Client fd: " <<  getClientsock() << std::endl;
     std::cout << "Username: " << _username << std::endl;
     std::cout << "Nickname: " << _nickname << std::endl;

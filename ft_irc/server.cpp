@@ -68,37 +68,36 @@ void printascii(std::string ss){
 		}
 	}
 
-	std::cout << " --  " << ss << std::endl;
+	std::cout << ss << " " << std::endl;
 }
 
-void server::check_requ(std::string str, client *Client){
-	std::stringstream iss(str);
-	std::string token;
-	std::string tmp;
+bool validCAPLS(const std::string& message) {
+	if (!message.compare(0, 6, "CAP LS")) {
+		return true;
+	}
+    return false;
+}
+
+void	server::new_client(std::stringstream& iss) {
+	std::string	token;
+	client *Client = new client();
 
 	while (std::getline(iss, token, '\n')) {
 		std::istringstream iss(token);
 		std::string command;
 		iss >> command;
-		std::cout << "command " << command << std::endl;
 		if (!std::strncmp(command.c_str(), "USER", 4)){
-    		std::string username, nickname, ipAddress;
-    		iss >> username >> nickname >> ipAddress;
+			std::string username, nickname, ipAddress;
+			iss >> username >> nickname >> ipAddress;
 
-    		// Remove the last colon (:) from the ipAddress
-    		ipAddress = ipAddress.substr(0, ipAddress.size() - 1);
-
-    		// Set's the client's object with the parsed information
-		std::cout << "username && address" << username << "  " << ipAddress << std::endl;
-    		Client->setUsername(username);
-    		Client->setIpAddress(ipAddress);
+			Client->setUsername(username);
+			Client->setIpAddress(ipAddress);
 		}
 		else if (!std::strncmp(command.c_str(), "NICK", 4)){
-    		std::string nickname;
+			std::string nickname;
 			iss >> nickname;
 
-    		// nickname = nickname.substr(0, nickname.size() - 1);
-			Client->setNickname(str);
+			Client->setNickname(nickname);
 		}
 		else if (!std::strncmp(command.c_str(), "PASS", 4)){
 			std::string passwd;
@@ -109,17 +108,29 @@ void server::check_requ(std::string str, client *Client){
 			Client->setActive(true);
 		}
 	}
-	int count = 0;
-	// Client->printClient();
 	_clients.push_back(Client);
-	// std::list<client *>::iterator i = _clients.begin();
-	// for (; i !=  _clients.end(); ++i, ++count) {
-	// 	std::cout << "index = " << count << std::endl;
-	// 	(*i)->printClient();
-	// }
 }
 
-void	printClient(client *c) {
+void	server::handleMsg(std::stringstream& iss) {
+	std::string	token;
+	client *Client = client::getClient();
+
+}
+
+void server::check_requ(std::string str){
+	std::stringstream iss(str);
+	std::string token;
+	
+	if (validCAPLS(str))
+		new_client(iss);
+	else
+		handleMsg(iss);
+
+}
+
+
+int	check_new_client(std::string buff) {
+	std::istringstream  iss(buff);
 
 }
 
@@ -132,7 +143,7 @@ void	server::launch(std::string	passwd, std::string	port) {
 	_server_addr.sin_family = AF_INET;
 	_server_addr.sin_port = htons(_port);
 	_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-
+	ncl = 0;
 	int enable = 1;
 	if (setsockopt(_server_sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0)
 		throw std::runtime_error("Failed in setting socket option: " + std::string(strerror(errno)));
@@ -145,44 +156,52 @@ void	server::launch(std::string	passwd, std::string	port) {
 		throw	std::runtime_error("Failed in listening to server's socket: " + std::string(strerror(errno)));
 	}
 
-	std::cout << "\033[1;32mThe server is listening on the port ==> \033[0m" << "\033[1;41m" << _port << "\033[0m" <<  std::endl;
+	std::cout << "\033[1;42mThe server is listening on the port\033[0m ==> " << "\033[1;41m" << _port << "\033[0m" <<  std::endl;
 	
-	struct pollfd fds[MAX_CLIENT + 1];
+	std::vector<struct pollfd> fds(MAX_CLIENT + 1);
 	
-	fds[0].fd = _server_sock;
-	fds[0].events = POLLIN;
-	size_t nfds = 1;
+    // Add the server socket to the fds vector
+    fds[0].fd = _server_sock;
+    fds[0].events = POLLIN;
+    size_t nfds = 1;
 
-	while (IRC){
-			//multiplexing
-			setpoll(poll(fds, nfds, -1));
+    while (IRC) {
+        // multiplexing
+        setpoll(poll(&fds[0], nfds, -1));
 
-			client *c;
 			if (fds[0].revents & POLLIN){
-				c = new client();
+				
+				socklen_t		_addr_len;
+				sockaddr_in		_client_addr;
+				int clientSocket = accept(_server_sock, reinterpret_cast<sockaddr *>(&_client_addr), &_addr_len);
+				if (clientSocket == -1)
+					throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
 
-				c->setClientsock(accept(_server_sock, reinterpret_cast<sockaddr *>(&c->_client_addr), &c->_addr_len));
-					// std::cerr << "Client IP address: " << inet_ntoa(c->_client_addr.sin_addr) << std::endl;
-					// std::cerr << "Actual size of clientAddr structure: " << c->_addr_len << std::endl;
-				fds[nfds].fd = c->getClientsock();
+				fds[nfds].fd = clientSocket;
 				fds[nfds].events = POLLIN | POLLOUT;
 				++nfds;
 			}
 			//check request
-			for (int i = 1; i < nfds ; ++i){
+			for (size_t i = 1; i < nfds; ++i){
 				if (fds[i].revents & POLLIN){
-					std::cout << "client fd: " << fds[i].fd << std::endl;
 					char buff[1024];
+					
 					int read = recv(fds[i].fd, buff, sizeof(buff), 0);
 					if (read == -1)
-						throw std::runtime_error("hbas hna");
+						throw std::runtime_error("Failed receving data" + std::string(strerror(errno)));
 					buff[read] = '\0';
-					// std::cerr << buff << std::endl;
-					check_requ(buff, c);
+					// client *c = new client();
+					// c->setClientsock(fds[i].fd);
+					check_requ(buff);
+					if (fds[i].revents & (POLLHUP | POLLERR)){
+						//del user if disconnected
+						if (i > 0){
+							std::cerr << "<fd=" << fds[i].fd << "> " << ": disconnected" << std::endl;
+							close(fds[i].fd);
+							fds.erase(fds.begin() + i);
+						}
+					}
 				}
 			}
 	}
-
-	
 }
-

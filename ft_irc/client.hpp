@@ -3,6 +3,8 @@
 
 #include<iostream>
 #include"head.hpp"
+#include "server.hpp"
+class server;
 
 #define MAX_CLIENT 256
 #define BUFFER_SIZE 1024
@@ -13,11 +15,10 @@ private:
 	std::string		_nickname;
 	std::string		_ipaddress;
 	int				_client_sock;
-	char			_buff[BUFFER_SIZE];
+	char __unused	_buff[BUFFER_SIZE];
 public:
 
-	socklen_t		_addr_len;
-	sockaddr_in		_client_addr;
+	
 
 	// Orthedox Form
 	client();
@@ -39,7 +40,8 @@ public:
 	std::string		getNickname() const ;
 	int				getClientsock() const ;
 	sockaddr_in 	getClientaddr() const ;
-
+	bool 			getActive() const;
+	std::string		getIpaddress() const ;
 	// Methods
 	void	printClient() const;
 };
