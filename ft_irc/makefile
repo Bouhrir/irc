@@ -1,10 +1,10 @@
 NAME = icserv
 
-SRC = main.cpp utils.cpp server.cpp client.cpp 
+SRC = main.cpp utils.cpp server.cpp client.cpp channel.cpp
 
 CXX = c++
 
-CXXFLAGS = -Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
+CXXFLAGS = #-Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
 
 INCLUDES = head.hpp error.hpp server.hpp client.hpp
 

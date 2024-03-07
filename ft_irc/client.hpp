@@ -18,11 +18,10 @@ private:
 	char __unused	_buff[BUFFER_SIZE];
 public:
 
-	
-
 	// Orthedox Form
 	client();
 	client(int socket);
+	client(int socket, int id, std::string & ip);
 	client(const client& other);
 	client &operator=(const client& other);
 	bool operator==(const client& other);
@@ -42,6 +41,7 @@ public:
 	sockaddr_in 	getClientaddr() const ;
 	bool 			getActive() const;
 	std::string		getIpaddress() const ;
+	std::string 	getForm() const ;
 	// Methods
 	void	printClient() const;
 };
