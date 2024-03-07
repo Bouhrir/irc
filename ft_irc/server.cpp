@@ -91,7 +91,7 @@ bool server::validPASS(std::stringstream &iss) {
 void	server::new_client(std::string& str, int fd) {
 	std::string	token;
 	std::string ip(inet_ntoa(_client_addr.sin_addr));
-	client *Client = new client(fd, ip);
+	client *Client = new client(fd, _id, ip);
 	std::stringstream ss(str);
 	while (std::getline(ss, token, '\n')) {
 		
@@ -160,7 +160,7 @@ std::string server::creatPong(std::string &token, client *c, std::string check){
 		if (chackIfChannelExists(target)) {
 			puts("deja");
 			channel* chan = getChannel(target);
-			chan ->addMember(c);
+			chan->addMember(c);
 		} else {
 			puts("makinax");
 			channel *newChan = new channel(target, _server);
@@ -222,11 +222,8 @@ void server::join(client *Client){
 		std::cout << pong << std::endl;
 	}
 	else {
-		if (Client)
-		{
-			buffer = ":localhost " +  ERR_NOSUCHCHANNEL(Client->getNickname(), channel);
-			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
-		}
+		buffer = ":localhost " +  ERR_NOSUCHCHANNEL(Client->getNickname(), channel);
+		send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
 	}
 
 }
@@ -273,8 +270,6 @@ void	server::handleMsg(std::string& str, int fdClient) {
 	std::stringstream iss(str);
 	client *Client = getClient(fdClient);
 	std::cout << "----msg----\n";
-	if (Client)
-		Client->printClient();
 	std::string arr[] = {"WHO" ,"USER" ,"NICK" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"KICK"};
 
 	void (server::*env[9])(client *) = {&server::who, &server::user, &server::nick, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::mode};
@@ -339,7 +334,27 @@ int	check_new_client(std::string buff) {
 
 	return 1;
 }
-
+void server::listofclients(std::vector<struct pollfd> &fds){
+	for (size_t i = 1; i < fds.size(); ++i){
+		if (fds[i].revents & POLLIN){
+			char buff[1024];
+			
+			int read = recv(fds[i].fd, buff, sizeof(buff), 0);
+			if (read == -1)
+				throw std::runtime_error("Failed receving data" + std::string(strerror(errno)));
+			buff[read] = '\0';
+			check_requ(buff, fds[i].fd);
+			if (fds[i].revents & (POLLHUP | POLLERR)){
+				//del user if disconnected
+				if (i > 0){
+					std::cerr << "<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected" << std::endl;
+					close(fds[i].fd);
+					fds.erase(fds.begin() + i);
+				}
+			}
+		}
+	}
+}
 // Server Setup
 void	server::launch(std::string	passwd, std::string	port) {
 	_port = my_atoi(port);
@@ -370,7 +385,7 @@ void	server::launch(std::string	passwd, std::string	port) {
     while (IRC) {
         // multiplexing
         setpoll(poll(&fds[0], nfds, -1));
-
+		//accept new clients
 		if (fds[0].revents & POLLIN){
 			
 			int clientSocket = accept(_server_sock, reinterpret_cast<sockaddr *>(&_client_addr), &_c_addr_len);
@@ -380,27 +395,10 @@ void	server::launch(std::string	passwd, std::string	port) {
 			fds[nfds].fd = clientSocket;
 			fds[nfds].events = POLLIN | POLLOUT;
 			srand(time(NULL));
+			_id = rand() % 1000;
 			++nfds;
 		}
 		//check request
-		for (size_t i = 1; i < fds.size(); ++i){
-			if (fds[i].revents & POLLIN){
-				char buff[1024];
-				
-				int read = recv(fds[i].fd, buff, sizeof(buff), 0);
-				if (read == -1)
-					throw std::runtime_error("Failed receving data" + std::string(strerror(errno)));
-				buff[read] = '\0';
-				check_requ(buff, fds[i].fd);
-				if (fds[i].revents & (POLLHUP | POLLERR)){
-					//del user if disconnected
-					if (i > 0){
-						std::cerr << "<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected" << std::endl;
-						close(fds[i].fd);
-						fds.erase(fds.begin() + i);
-					}
-				}
-			}
-		}
+		listofclients(fds);
 	}
 }

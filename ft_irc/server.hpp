@@ -22,8 +22,9 @@ private:
 	std::vector<client*>	_clients;
 	std::vector<channel*>	_channels;
 	int 				_activity;
-    size_t nfds;
-	std::string	_token;
+    size_t 				nfds;
+	std::string			_token;
+	int					_id;
 
 	
 	void				new_client(std::string& , int);
@@ -49,6 +50,7 @@ public:
 	void 	setpoll(int);
 	void 	check_requ( std::string , int);
 	void	sendMessage(client	*from , client *to, const std::string& msg) const;
+	void	listofclients(std::vector<struct pollfd> &fds);
 	///
 	std::string 	creatPong(std::string &, client *, std::string ) ;
 	bool validUser(std::string user);
