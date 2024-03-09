@@ -91,7 +91,6 @@ bool server::validPASS(std::stringstream &iss) {
 void	server::new_client(std::string& str, int fd) {
 	std::string	token;
 	std::string ip(inet_ntoa(_client_addr.sin_addr));
-	std::cerr <<  "New client connected from " << ip << "and buff is " << str << std::endl;
 	client *Client = new client(fd, _id, ip);
 	std::stringstream ss(str);
 	while (std::getline(ss, token, '\n')) {
@@ -263,7 +262,7 @@ void server::privmsg(client *Client , std::stringstream& os){
 		}
 	}
 	else{
-		buffer = ":localhost " + ERR_NOSUCHNICK(Client->getNickname(), nick);
+		buffer = ":" + _server->getIpaddress() + " " + ERR_NOSUCHNICK(Client->getNickname(), nick);
 		send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
 	}
 
@@ -293,23 +292,41 @@ void server::mode(client *Client , std::stringstream& os){
 	}
 
 }
+
 void server::kick(client *Client , std::stringstream& os){
 	std::cout << "kick\n";
 
 }
+//PART #gen :Leaving
+//: 403 obouhrir #ggggg :No such channel
+void server::part(client *Client, std::stringstream& os){
+	std::cout << "part\n";
+	std::string chan;
+	os >> chan;
+	std::cout << chan << std::endl;
+	channel *cha = getChannel(chan);
+	if (!cha){
+		sendMessage(_server, Client, ":localhost " + ERR_NOSUCHCHANNEL(Client->getNickname(), chan));
+	}
+	else
+	{
+		////
+	}
+}
+
 void	server::handleMsg(std::string& str, int fdClient) {
 	std::stringstream iss(str);
 	client *Client = getClient(fdClient);
 	std::cout << "----msg----\n";
-	std::string arr[] = {"WHO" ,"USER" ,"NICK" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"KICK"};
+	std::string arr[] = {"WHO" ,"USER" ,"NICK" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"KICK", "PART"};
 
-	void (server::*env[9])(client *, std::stringstream&) = {&server::who, &server::user, &server::nick, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::mode};
+	void (server::*env[10])(client *, std::stringstream&) = {&server::who, &server::user, &server::nick, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::mode, &server::part};
 	int i = 0;
 	while (std::getline(iss, _token, '\n')){
 		std::stringstream os(_token);
 		std::string cmd;
 		os >> cmd;
-		for(; i < 9; ++i){
+		for(; i < 10; ++i){
 			if (cmd == arr[i])
 				break;
 		}
@@ -341,6 +358,8 @@ void	server::handleMsg(std::string& str, int fdClient) {
 			case 8:
 				(this->*(env[8]))(Client, os);
 				break;
+			case 9:
+				(this->*(env[9]))(Client, os);
 			default:
 				break;
 		}
@@ -370,8 +389,8 @@ void server::listofclients(std::vector<struct pollfd> &fds){
 	for (size_t i = 1; i < fds.size(); ++i){
 		if (fds[i].revents & POLLIN){
 			char buff[BUFFER_SIZE];
-			
-			int read = recv(fds[i].fd, buff, sizeof(buff), 0);
+			int read;
+			read = recv(fds[i].fd, buff, sizeof(buff), 0);
 			if (read == -1)
 				throw std::runtime_error("Failed receving data" + std::string(strerror(errno)));
 			buff[read] = '\0';
@@ -387,30 +406,58 @@ void server::listofclients(std::vector<struct pollfd> &fds){
 		}
 	}
 }
+
+std::string getipmachine() {
+    char hostname[256];
+    struct hostent *host_entry;
+    struct in_addr **addr_list;
+    int i;
+
+    // Get the hostname
+    if (gethostname(hostname, sizeof(hostname)) == -1) {
+        perror("Error getting hostname");
+        return 0;
+    }
+
+    // Get host entry
+    if ((host_entry = gethostbyname(hostname)) == NULL) {
+        perror("Error getting host entry");
+        return 0;
+    }
+
+    // Retrieve IP addresses
+    addr_list = (struct in_addr **)host_entry->h_addr_list;
+    for (i = 0; addr_list[i] != NULL; i++) {
+        printf("IP Address %d: %s\n", i + 1, inet_ntoa(*addr_list[i]));
+    }
+
+    return inet_ntoa(*addr_list[0]);
+}
 // Server Setup
 void	server::launch(std::string	passwd, std::string	port) {
 	_port = my_atoi(port);
 	_passwd = passwd;
 	_server_sock = open_socket();
 	_server = new client(_server_sock);
+	_server->setIpAddress(getipmachine()); //anaaaaa 4adi ldaaar
 
 
 	_server_addr.sin_family = AF_INET;
 	_server_addr.sin_port = htons(_port);
 	_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
+
 	int enable = 1;
 	if (setsockopt(_server_sock, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof(enable)) < 0)
 		throw std::runtime_error("Failed in setting socket option: " + std::string(strerror(errno)));
 
+	
 	if (bind(_server_sock, (struct sockaddr *)&_server_addr, sizeof(_server_addr)) == -1) {
 		throw	std::runtime_error("Failed to bind server's socket: " + std::string(strerror(errno)));
 	}
-
 	if (listen(_server_sock, MAX_CLIENT) == -1) {
 		throw	std::runtime_error("Failed in listening to server's socket: " + std::string(strerror(errno)));
 	}
 
-	_server->setIpAddress(inet_ntoa( _server_addr.sin_addr ));
 	std::cout << "\033[1;42mThe server is listening on the port\033[0m ==> " << "\033[1;41m" << _port << "\033[0m" <<  std::endl;
 	std::vector<struct pollfd> fds(MAX_CLIENT + 1);
     // Add the server socket to the fds vector

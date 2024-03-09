@@ -2,12 +2,20 @@
 #define SERVER_HPP
 
 #include"head.hpp"
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
 #include<list>
 #include <vector>
 #include <poll.h>
 #include <sstream>
 #include <algorithm>
 #include <map>
+
 #define IRC true
 class client;
 class channel;
@@ -58,14 +66,15 @@ public:
 	channel*	getChannel(std::string name);
 
 	///commands
-	void who( client *, std::stringstream& );
-	void user( client *, std::stringstream& );
-	void nick( client *, std::stringstream& );
-	void join( client *, std::stringstream& );
-	void privmsg( client *, std::stringstream& );
-	void topic( client *, std::stringstream& );
-	void invite( client *, std::stringstream& );
-	void mode( client *, std::stringstream& );
-	void kick( client *, std::stringstream& );
+	void 	who( client *, std::stringstream& );
+	void 	user( client *, std::stringstream& );
+	void 	nick( client *, std::stringstream& );
+	void 	join( client *, std::stringstream& );
+	void 	privmsg( client *, std::stringstream& );
+	void 	topic( client *, std::stringstream& );
+	void 	invite( client *, std::stringstream& );
+	void 	mode( client *, std::stringstream& );
+	void 	kick( client *, std::stringstream& );
+	void 	part(client *, std::stringstream& );
 };
 #endif
