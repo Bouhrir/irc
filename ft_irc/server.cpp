@@ -1,7 +1,8 @@
 #include "server.hpp"
 #include "client.hpp"
 #include "head.hpp"
-#include "stdio.h"
+#include <netdb.h>
+
 static	int	my_atoi(std::string& str) {
     size_t	i = 0;
     int		result = 0;
@@ -148,30 +149,6 @@ channel*	server::getChannel(std::string name) {
 	return NULL;
 }
 
-// :obouhrir!oussama@88ABE6.25BF1D.D03F86.88C9BD.IP PRIVMSG obouhrir :slama sahbi
-// :obouhrir!oussama@88ABE6.25BF1D.D03F86.88C9BD.IP JOIN #general * :realnam
-std::string server::creatPong(std::string &token, client *c, std::string check){
-	// std::map<std::string, std::string> args;
-	std::stringstream iss(token);
-	std::string pong, skip, target;
-	iss >> skip >> target;
-	if (check == "prvmsg")
-		pong = ':' + c->getForm() + " PRIVMSG " + target + " :" + msg + "\r\n"; 
-	else if (check == "join") {
-		if (chackIfChannelExists(target)) {
-			puts("deja");
-			channel* chan = getChannel(target);
-			chan->addMember(c);
-		} else {
-			puts("makinax");
-			channel *newChan = new channel(target, _server);
-			_channels.push_back(newChan);
-			newChan->addMember(c);
-		}
-	}
-	return pong;
-}
-
 bool server::validUser(std::string nick){
 	std::vector<client *>::iterator it = _clients.begin();
 	for (; it != _clients.end();++it){
@@ -199,6 +176,14 @@ client*	server::getClient(std::string nick) {
 	return NULL;
 }
 
+channel*	server::createNewChannel(std::string name, client* creator) {
+	channel *newChan = new channel(creator, name, _server);
+
+	newChan->addMember(creator);
+	return newChan;
+}
+
+
 void server::who(client *Client , std::stringstream& os){
 	std::cout << "who\n";
 	std::string chan;
@@ -206,90 +191,123 @@ void server::who(client *Client , std::stringstream& os){
 	os >> chan;
 	channel	*ch = getChannel(chan);
 	if (!ch) {
-		sendMessage(_server, Client, ":localhost " + ERR_NOSUCHCHANNEL(Client->getNickname(), chan));
+		sendMessage(_server, Client, ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan));
 	} else {
 		ch->RPL_who(Client);
 	}
 }
-void server::user(client *Client , std::stringstream& os){
-	std::cout << "user\n";
 
-}
-void server::nick(client *Client , std::stringstream& os){
-	std::cout << "nick\n";
-
-}
 void server::join(client *Client , std::stringstream& os){
 	std::cout << "join\n";
-
 	std::string chan, buffer;
-	os >> chan;
 
-	size_t pos = chan.find('#');
-	if (pos != std::string::npos){
+	os >> chan;
+	if (chan[0] == '#'){
 		channel *ch = getChannel(chan);
 		if (!ch){
-			ch = new channel(chan, _server);
+			ch = createNewChannel(chan, Client);
 			_channels.push_back(ch);
-			ch->setModes("t");
-			ch->addOperator(Client);
-			ch->addMember(Client);
-
 		} else {
 			ch->addMember(Client);
 		}
 	}
 	else {
-		buffer = ":localhost " +  ERR_NOSUCHCHANNEL(Client->getNickname(), chan);
+		buffer = ":" + _server->getIpaddress() +  ERR_NOSUCHCHANNEL(Client->getNickname(), chan);
 		send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
 	}
 
 }
+
 void server::privmsg(client *Client , std::stringstream& os){
 	std::cout << "privmsg\n";
-	std::string buffer;
-	std::stringstream ss(_token);
-	std::string skip, nick;
-	ss >> skip >> nick;
-	if (validUser(nick))
-	{
-		client *c = getClient(nick);
-		size_t pos = _token.find(':');
-		if (pos != std::string::npos){
-			msg = _token.substr(pos + 1);
-			std::string pong = creatPong(_token, Client, "prvmsg");
-			send(c->getClientsock(), pong.c_str(), pong.length(), 0);
-			std::cout << pong << std::endl;
+	std::string buffer, nickORchan, msg;
+
+	os >> nickORchan >> msg;
+	if  (nickORchan[0] == '#'){
+		// Channel message
+		channel* ch = getChannel(nickORchan);
+		if (ch) {
+			size_t pos = _token.find(':');
+			if (pos == std::string::npos)
+				msg = msg.substr(pos + 1);
+			ch->RPL_privmsg(Client, msg);
+		} else {
+			buffer = ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), nickORchan);
+			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+		}
+	} else {
+		// Private Message
+		client *c = getClient(nickORchan);
+		if (c) {
+			size_t pos = _token.find(':');
+			if (pos == std::string::npos)
+				msg = msg.substr(pos + 1);
+			buffer =  ':' + Client->getForm() + " PRIVMSG " + c->getNickname() + " :" + msg + "\r\n"; 
+			sendMessage(_server, c, msg);
+		} else {
+			buffer = ":" + _server->getIpaddress() + ERR_NOSUCHNICK(Client->getNickname(), nickORchan);
+			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
 		}
 	}
-	else{
-		buffer = ":localhost " + ERR_NOSUCHNICK(Client->getNickname(), nick);
-		send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
-	}
-
 }
+
 void server::topic(client *Client , std::stringstream& os){
 	std::cout << "topic\n";
+	std::string chan, topic, buffer;
 
+	os >> chan >> topic;
+	channel *ch = getChannel(chan);
+	if (ch) {
+		ch->RPL_topic(Client, topic);
+	} else {
+		buffer = ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan);
+		send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);	
+	}
 }
+
 void server::invite(client *Client , std::stringstream& os){
 	std::cout << "invite\n";
+	std::string nick, chan, buffer;
 
+	os >> nick >> chan;
+	client *c = getClient(nick);
+	channel *ch = getChannel(chan);
+	if (c) {
+		if (ch) {
+			ch->RPL_invite(Client, c);
+		} else {
+			buffer =  ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan);
+			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);			
+		}
+	} else {
+		buffer =  ":" + _server->getIpaddress() + ERR_NOSUCHNICK(Client->getNickname(), nick);
+		send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+	}
 }
+
 void server::mode(client *Client , std::stringstream& os){
 	std::cout << "mode\n";
-	std::string chan, modes;
-	os >> chan >> modes;
+	std::string chan, modes, param;
+
+	os >> chan >> modes >> param;
 	channel	*ch = getChannel(chan);
-	if (!ch) {
-		sendMessage(_server, Client, ":localhost " + ERR_NOSUCHCHANNEL(Client->getNickname(), chan));
-	} else {
+	if (ch) {
 		if  (!modes.empty()) {
-			ch->setModes(modes);
+			// SET MODE
+			if (ch->isOperator(Client)) {
+				ch->validModes(Client, modes, param);
+			} else {
+				sendMessage(_server, Client, ":" + _server->getIpaddress() + ERR_CHANOPRIVSNEEDED(Client->getNickname(), chan));
+			}
 		} else {
+			// VEIW MODE
+			if (!ch->getTopic().empty())
+				ch->RPL_topic(Client, "fda");
 			ch->RPL_list(Client);
 			ch->RPL_mode(Client);
 		}
+	} else {
+		sendMessage(_server, Client,  ": " + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan));
 	}
 
 }
@@ -301,9 +319,9 @@ void	server::handleMsg(std::string& str, int fdClient) {
 	std::stringstream iss(str);
 	client *Client = getClient(fdClient);
 	std::cout << "----msg----\n";
-	std::string arr[] = {"WHO" ,"USER" ,"NICK" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"KICK"};
+	std::string arr[] = {"WHO" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"KICK"};
 
-	void (server::*env[9])(client *, std::stringstream&) = {&server::who, &server::user, &server::nick, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::mode};
+	void (server::*env[9])(client *, std::stringstream&) = {&server::who, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::mode};
 	int i = 0;
 	while (std::getline(iss, _token, '\n')){
 		std::stringstream os(_token);
@@ -335,12 +353,6 @@ void	server::handleMsg(std::string& str, int fdClient) {
 			case 6:
 				(this->*(env[6]))(Client, os);
 				break;
-			case 7:
-				(this->*(env[7]))(Client, os);
-				break;
-			case 8:
-				(this->*(env[8]))(Client, os);
-				break;
 			default:
 				break;
 		}
@@ -351,7 +363,6 @@ void	server::handleMsg(std::string& str, int fdClient) {
 
 void server::check_requ(std::string str, int fd){
 	std::stringstream iss(str);
-
 
 	if (validPASS(iss)){
 		new_client(str, fd);
@@ -394,7 +405,6 @@ void	server::launch(std::string	passwd, std::string	port) {
 	_server_sock = open_socket();
 	_server = new client(_server_sock);
 
-
 	_server_addr.sin_family = AF_INET;
 	_server_addr.sin_port = htons(_port);
 	_server_addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -410,7 +420,11 @@ void	server::launch(std::string	passwd, std::string	port) {
 		throw	std::runtime_error("Failed in listening to server's socket: " + std::string(strerror(errno)));
 	}
 
-	_server->setIpAddress(inet_ntoa( _server_addr.sin_addr ));
+	socklen_t TEST = sizeof(_server_addr);
+	// getsockname(_server_sock, (sockaddr *)&_server_addr, &TEST);
+	std::cout << "SERVER IP CONNECTED: " << inet_ntoa(_server_addr.sin_addr) << "\n";
+
+	_server->setIpAddress(inet_ntoa(_server_addr.sin_addr));
 	std::cout << "\033[1;42mThe server is listening on the port\033[0m ==> " << "\033[1;41m" << _port << "\033[0m" <<  std::endl;
 	std::vector<struct pollfd> fds(MAX_CLIENT + 1);
     // Add the server socket to the fds vector
@@ -422,10 +436,10 @@ void	server::launch(std::string	passwd, std::string	port) {
 		//accept new clients
 		if (fds[0].revents & POLLIN){
 			
-			int clientSocket = accept(_server_sock, reinterpret_cast<sockaddr *>(&_client_addr), &_c_addr_len);
+			int clientSocket = accept(_server_sock, (struct sockaddr *)(&_client_addr), &_c_addr_len);
 			if (clientSocket == -1)
 				throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
-
+			std::cout << "NEW CLIENT CONNECTED: " << inet_ntoa(_client_addr.sin_addr) << "\n";
 			fds[nfds].fd = clientSocket;
 			fds[nfds].events = POLLIN | POLLOUT;
 			srand(time(NULL));

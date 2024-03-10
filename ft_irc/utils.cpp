@@ -1,5 +1,6 @@
 #include"head.hpp"
 #include "server.hpp"
+#include "channel.hpp"
 int	server::open_socket() {
 	int	sock;
 
@@ -24,3 +25,4 @@ void server::sendMessage(client	*from , client *to, const std::string& msg) cons
     }
 	return ;
 }
+

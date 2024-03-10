@@ -28,8 +28,8 @@ public:
 	~client();
 	
 	// Setters
-	void	setUsername( std::string& Username );
-	void	setNickname( std::string& Nickname );
+	void	setUsername( std::string Username );
+	void	setNickname( std::string Nickname );
 	void	setIpAddress( std::string IpAddress );
 	void	setClientsock(int socket);
 	void 	setActive(bool);

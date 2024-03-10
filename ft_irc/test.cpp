@@ -20,14 +20,22 @@
 #include<iostream>
 #include <sstream>
 
-int main () {
-	std::string str("mode general +o"), cmd, chan, modes;
-	std::stringstream os(str);
+void	 parse_who(std::string &line) {
+	std::string tmp;
+	for (size_t i = 0; i < line.size(); ++i) {
+		if (line[i] == 'i' || line[i] == 't' || line[i] == 'o' || line[i] == 'k' || line[i] == 'l')
+			tmp +=  line[i];
+	}
+	line = tmp;
+}
 
-	os >> cmd >> chan >> modes;
-	std::cout << ":" << cmd  << ": :" << chan << ":";
-	if (!modes.empty())
-		std::cout << " :" << modes << ":";
-	std::cout << std::endl;
-	
+int main () {
+	std::string str("abcd olkt"), first, sec, thir;
+	std::stringstream os(str);
+	os >> first >> sec >> thir;
+	size_t pos = thir.find('k');
+	if (pos != std::string::npos)
+		std::cout << pos <<  " yes" << std::endl;
+	else
+		std::cout << pos <<  " no" << std::endl;
 }

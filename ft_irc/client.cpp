@@ -36,10 +36,10 @@ client::~client() {
 }
 
 // Setters
-void	client::setUsername( std::string& Username ) {
+void	client::setUsername( std::string Username ) {
 	_username = Username;
 }
-void	client::setNickname( std::string& Nickname ) {
+void	client::setNickname( std::string Nickname ) {
 	_nickname = Nickname;
 }
 void	client::setIpAddress( std::string IpAddress ) {

@@ -8,6 +8,7 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
+#include <netdb.h>
 #define IRC true
 class client;
 class channel;
@@ -27,15 +28,17 @@ private:
 	int					_id;
 
 	
-	void				new_client(std::string& , int);
-	void				handleMsg(std::string& , int);
-	client*				getClient(int fd);
-	client*				getClient(std::string nick);
 	bool				validPASS(std::stringstream &iss);
 	std::string 		msg;
 
 	client				*_server;
 public:
+
+	void				new_client(std::string& , int);
+	void				handleMsg(std::string& , int);
+	client*				getClient(int fd);
+	client*				getClient(std::string nick);
+	
 	socklen_t		_c_addr_len;
 	sockaddr_in		_client_addr;
 	// Orthedox Form
@@ -56,6 +59,7 @@ public:
 	bool validUser(std::string user);
 	bool	chackIfChannelExists(const std::string name) const;
 	channel*	getChannel(std::string name);
+	bool	GenerateServerData(const std::string &port);
 
 	///commands
 	void who( client *, std::stringstream& );
@@ -67,5 +71,9 @@ public:
 	void invite( client *, std::stringstream& );
 	void mode( client *, std::stringstream& );
 	void kick( client *, std::stringstream& );
+
+
+	//Methods 
+	channel*	 createNewChannel(std::string name, client* creator);
 };
 #endif

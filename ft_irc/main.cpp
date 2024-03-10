@@ -1,5 +1,5 @@
 #include "head.hpp"
-#include "server.hpp"
+#include "./server.hpp"
 
 int main(int ac, char *av[]) {
 	if (ac != 3)
