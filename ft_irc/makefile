@@ -1,10 +1,9 @@
 NAME = icserv
 
-SRC = main.cpp utils.cpp server.cpp client.cpp channel.cpp
-
+SRC = server.cpp utils.cpp client.cpp channel.cpp 
 CXX = c++
 
-CXXFLAGS = #-Wall -Wextra -Werror -std=c++98 -fsanitize=address -g
+CXXFLAGS = #-std=c++98 -fsanitize=address -g
 
 INCLUDES = head.hpp error.hpp server.hpp client.hpp
 
@@ -16,8 +15,8 @@ all : ${NAME}
 %.o:%.cpp ${INCLUDES}
 	${CXX} ${CXXFLAGS} -c $< -o $@
 
-${NAME} : ${OBJ} 
-	${CXX} ${CXXFLAGS} ${OBJ} -o ${NAME}
+${NAME} : ${OBJ} main.cpp
+	${CXX} ${CXXFLAGS} ${OBJ} main.cpp -o ${NAME}
 	@echo "\033[1;7;32mSuccessfully compiled $(NAME)!\033[0m"
 
 # r: ${OBJ}

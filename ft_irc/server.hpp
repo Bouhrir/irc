@@ -15,7 +15,11 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
+<<<<<<< HEAD
 
+=======
+#include <netdb.h>
+>>>>>>> fhihi
 #define IRC true
 class client;
 class channel;
@@ -35,15 +39,17 @@ private:
 	int					_id;
 
 	
-	void				new_client(std::string& , int);
-	void				handleMsg(std::string& , int);
-	client*				getClient(int fd);
-	client*				getClient(std::string nick);
 	bool				validPASS(std::stringstream &iss);
 	std::string 		msg;
 
 	client				*_server;
 public:
+
+	void				new_client(std::string& , int);
+	void				handleMsg(std::string& , int);
+	client*				getClient(int fd);
+	client*				getClient(std::string nick);
+	
 	socklen_t		_c_addr_len;
 	sockaddr_in		_client_addr;
 	// Orthedox Form
@@ -64,8 +70,10 @@ public:
 	bool validUser(std::string user);
 	bool	chackIfChannelExists(const std::string name) const;
 	channel*	getChannel(std::string name);
+	bool	GenerateServerData(const std::string &port);
 
 	///commands
+<<<<<<< HEAD
 	void 	who( client *, std::stringstream& );
 	void 	user( client *, std::stringstream& );
 	void 	nick( client *, std::stringstream& );
@@ -76,5 +84,20 @@ public:
 	void 	mode( client *, std::stringstream& );
 	void 	kick( client *, std::stringstream& );
 	void 	part(client *, std::stringstream& );
+=======
+	void who( client *, std::stringstream& );
+	void user( client *, std::stringstream& );
+	void nick( client *, std::stringstream& );
+	void join( client *, std::stringstream& );
+	void privmsg( client *, std::stringstream& );
+	void topic( client *, std::stringstream& );
+	void invite( client *, std::stringstream& );
+	void mode( client *, std::stringstream& );
+	void kick( client *, std::stringstream& );
+
+
+	//Methods 
+	channel*	 createNewChannel(std::string name, client* creator);
+>>>>>>> fhihi
 };
 #endif

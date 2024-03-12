@@ -15,8 +15,8 @@
 
 #define TCP SOCK_STREAM
 // #define	BUFFER_SIZE 2048
-#define ERR_NOSUCHNICK(nick, nickname)	("401 " + nick + " " + nickname + " :No such nick\r\n")
-#define ERR_NOSUCHCHANNEL(nick, chan)	("403 " + nick + " " + chan + " :No such channel\r\n")
+#define ERR_NOSUCHNICK(user, nickname)	(" 401 " + user + " " + nickname + " :No such nick\r\n")
+#define ERR_NOSUCHCHANNEL(user, chan)	(" 403 " + user + " " + chan + " :No such channel\r\n")
 class	commands {
 private:
 
