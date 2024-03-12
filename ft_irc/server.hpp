@@ -15,11 +15,7 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
-<<<<<<< HEAD
-
-=======
 #include <netdb.h>
->>>>>>> fhihi
 #define IRC true
 class client;
 class channel;
@@ -73,18 +69,6 @@ public:
 	bool	GenerateServerData(const std::string &port);
 
 	///commands
-<<<<<<< HEAD
-	void 	who( client *, std::stringstream& );
-	void 	user( client *, std::stringstream& );
-	void 	nick( client *, std::stringstream& );
-	void 	join( client *, std::stringstream& );
-	void 	privmsg( client *, std::stringstream& );
-	void 	topic( client *, std::stringstream& );
-	void 	invite( client *, std::stringstream& );
-	void 	mode( client *, std::stringstream& );
-	void 	kick( client *, std::stringstream& );
-	void 	part(client *, std::stringstream& );
-=======
 	void who( client *, std::stringstream& );
 	void user( client *, std::stringstream& );
 	void nick( client *, std::stringstream& );
@@ -98,6 +82,5 @@ public:
 
 	//Methods 
 	channel*	 createNewChannel(std::string name, client* creator);
->>>>>>> fhihi
 };
 #endif

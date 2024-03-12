@@ -248,14 +248,6 @@ void server::privmsg(client *Client , std::stringstream& os){
 			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
 		}
 	}
-<<<<<<< HEAD
-	else{
-		buffer = ":" + _server->getIpaddress() + " " + ERR_NOSUCHNICK(Client->getNickname(), nick);
-		send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
-	}
-
-=======
->>>>>>> fhihi
 }
 
 void server::topic(client *Client , std::stringstream& os){
@@ -325,34 +317,28 @@ void server::kick(client *Client , std::stringstream& os){
 }
 //PART #gen :Leaving
 //: 403 obouhrir #ggggg :No such channel
-void server::part(client *Client, std::stringstream& os){
-	std::cout << "part\n";
-	std::string chan;
-	os >> chan;
-	std::cout << chan << std::endl;
-	channel *cha = getChannel(chan);
-	if (!cha){
-		sendMessage(_server, Client, ":localhost " + ERR_NOSUCHCHANNEL(Client->getNickname(), chan));
-	}
-	else
-	{
-		////
-	}
-}
+// void server::part(client *Client, std::stringstream& os){
+// 	std::cout << "part\n";
+// 	std::string chan;
+// 	os >> chan;
+// 	std::cout << chan << std::endl;
+// 	channel *cha = getChannel(chan);
+// 	if (!cha){
+// 		sendMessage(_server, Client, ":localhost " + ERR_NOSUCHCHANNEL(Client->getNickname(), chan));
+// 	}
+// 	else
+// 	{
+// 		////
+// 	}
+// }
 
 void	server::handleMsg(std::string& str, int fdClient) {
 	std::stringstream iss(str);
 	client *Client = getClient(fdClient);
 	std::cout << "----msg----\n";
-<<<<<<< HEAD
-	std::string arr[] = {"WHO" ,"USER" ,"NICK" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"KICK", "PART"};
-
-	void (server::*env[10])(client *, std::stringstream&) = {&server::who, &server::user, &server::nick, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::mode, &server::part};
-=======
 	std::string arr[] = {"WHO" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"KICK"};
 
 	void (server::*env[9])(client *, std::stringstream&) = {&server::who, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::mode};
->>>>>>> fhihi
 	int i = 0;
 	while (std::getline(iss, _token, '\n')){
 		std::stringstream os(_token);
@@ -384,17 +370,6 @@ void	server::handleMsg(std::string& str, int fdClient) {
 			case 6:
 				(this->*(env[6]))(Client, os);
 				break;
-<<<<<<< HEAD
-			case 7:
-				(this->*(env[7]))(Client, os);
-				break;
-			case 8:
-				(this->*(env[8]))(Client, os);
-				break;
-			case 9:
-				(this->*(env[9]))(Client, os);
-=======
->>>>>>> fhihi
 			default:
 				break;
 		}
@@ -491,14 +466,11 @@ void	server::launch(std::string	passwd, std::string	port) {
 		throw	std::runtime_error("Failed in listening to server's socket: " + std::string(strerror(errno)));
 	}
 
-<<<<<<< HEAD
-=======
 	socklen_t TEST = sizeof(_server_addr);
 	// getsockname(_server_sock, (sockaddr *)&_server_addr, &TEST);
 	std::cout << "SERVER IP CONNECTED: " << inet_ntoa(_server_addr.sin_addr) << "\n";
 
 	_server->setIpAddress(inet_ntoa(_server_addr.sin_addr));
->>>>>>> fhihi
 	std::cout << "\033[1;42mThe server is listening on the port\033[0m ==> " << "\033[1;41m" << _port << "\033[0m" <<  std::endl;
 	std::vector<struct pollfd> fds(MAX_CLIENT + 1);
     // Add the server socket to the fds vector
