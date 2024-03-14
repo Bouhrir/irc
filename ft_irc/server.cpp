@@ -239,10 +239,10 @@ void server::privmsg(client *Client , std::stringstream& os){
 		client *c = getClient(nickORchan);
 		if (c) {
 			size_t pos = _token.find(':');
-			if (pos == std::string::npos)
-				msg = msg.substr(pos + 1);
+			if (pos != std::string::npos)
+				msg = _token.substr(pos + 1);
 			buffer =  ':' + Client->getForm() + " PRIVMSG " + c->getNickname() + " :" + msg + "\r\n"; 
-			sendMessage(_server, c, msg);
+			sendMessage(_server, c, buffer);
 		} else {
 			buffer = ":" + _server->getIpaddress() + ERR_NOSUCHNICK(Client->getNickname(), nickORchan);
 			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);

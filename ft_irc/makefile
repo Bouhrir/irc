@@ -1,4 +1,4 @@
-NAME = icserv
+NAME = ircserv
 
 SRC = server.cpp utils.cpp client.cpp channel.cpp 
 CXX = c++
