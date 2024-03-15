@@ -1,7 +1,11 @@
 #include "server.hpp"
 #include "client.hpp"
 #include "head.hpp"
+#include <map>
 #include <netdb.h>
+#include <algorithm>
+
+// std::map<int, std::string> clients;
 
 static	int	my_atoi(std::string& str) {
     size_t	i = 0;
@@ -182,6 +186,14 @@ channel*	server::createNewChannel(std::string name, client* creator) {
 	return newChan;
 }
 
+void showcase(std::stringstream &str){
+	std::string cmd, target, message;
+
+	str >> cmd >> target >> message ;
+	std::cout << "COMMAND: " << cmd << std::endl; 
+	std::cout << "TARGET: " << target << std::endl; 
+	std::cout << "MESSAGE: " << message << std::endl; 
+}
 
 void server::who(client *Client , std::stringstream& os){
 	std::cout << "who\n";
@@ -265,6 +277,7 @@ void server::topic(client *Client , std::stringstream& os){
 }
 
 void server::invite(client *Client , std::stringstream& os){
+
 	std::cout << "invite\n";
 	std::string nick, chan, buffer;
 
@@ -285,6 +298,7 @@ void server::invite(client *Client , std::stringstream& os){
 }
 
 void server::mode(client *Client , std::stringstream& os){
+
 	std::cout << "mode\n";
 	std::string chan, modes, param;
 
@@ -312,6 +326,7 @@ void server::mode(client *Client , std::stringstream& os){
 }
 
 void server::kick(client *Client , std::stringstream& os){
+
 	std::cout << "kick\n";
 
 }
@@ -333,6 +348,7 @@ void server::kick(client *Client , std::stringstream& os){
 // }
 
 void	server::handleMsg(std::string& str, int fdClient) {
+
 	std::stringstream iss(str);
 	client *Client = getClient(fdClient);
 	std::cout << "----msg----\n";
@@ -344,9 +360,13 @@ void	server::handleMsg(std::string& str, int fdClient) {
 		std::stringstream os(_token);
 		std::string cmd;
 		os >> cmd;
+		
 		for(; i < 10; ++i){
 			if (cmd == arr[i])
+			{
+				showcase(iss);
 				break;
+			}
 		}
 		switch(i){
 			case 0:
@@ -394,16 +414,40 @@ int	check_new_client(std::string buff) {
 
 	return 1;
 }
+
+// std::map<int, std::string>::iterator &findClient(int value) {
+// 	static std::map<int, std::string>::iterator found;
+// 	found = clients.begin();
+// 	while (found != clients.end()) {
+// 		if (found->first == value)
+// 			break ;
+// 	}
+// 	return found;
+// }
+
 void server::listofclients(std::vector<struct pollfd> &fds){
 	for (size_t i = 1; i < fds.size(); ++i){
+			std::string all;
 		if (fds[i].revents & POLLIN){
 			char buff[BUFFER_SIZE];
 			int read;
-			read = recv(fds[i].fd, buff, sizeof(buff), 0);
-			if (read == -1)
-				throw std::runtime_error("Failed receving data" + std::string(strerror(errno)));
-			buff[read] = '\0';
-			check_requ(buff, fds[i].fd);
+			while (true){
+
+				read = recv(fds[i].fd, buff, sizeof(buff), 0);
+		
+				if (read > 0 && errno != EPIPE){
+					buff[read] = '\0';
+					std::string _buff;
+					_buff += buff;
+					all.clear();
+					all = _buff;
+				}
+				else{
+					break;
+				}
+
+			}
+			check_requ(all, fds[i].fd);
 			if (fds[i].revents & (POLLHUP | POLLERR)){
 				//del user if disconnected
 				if (i > 0){
@@ -413,6 +457,7 @@ void server::listofclients(std::vector<struct pollfd> &fds){
 				}
 			}
 		}
+		// all.clear();
 	}
 }
 
@@ -476,6 +521,7 @@ void	server::launch(std::string	passwd, std::string	port) {
     // Add the server socket to the fds vector
     fds[0].fd = _server_sock;
     fds[0].events = POLLIN;
+	signal(SIGPIPE, SIG_IGN);
     while (IRC) {
         // multiplexing
         setpoll(poll(&fds[0], nfds, -1));
@@ -485,9 +531,11 @@ void	server::launch(std::string	passwd, std::string	port) {
 			int clientSocket = accept(_server_sock, (struct sockaddr *)(&_client_addr), &_c_addr_len);
 			if (clientSocket == -1)
 				throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
+			fcntl(clientSocket, F_SETFL, O_NONBLOCK) ;
 			std::cout << "NEW CLIENT CONNECTED: " << inet_ntoa(_client_addr.sin_addr) << "\n";
 			fds[nfds].fd = clientSocket;
 			fds[nfds].events = POLLIN | POLLOUT;
+			// clients[clientSocket] = "";
 			srand(time(NULL));
 			_id = rand() % 1000;
 			++nfds;
