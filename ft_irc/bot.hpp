@@ -1,25 +1,23 @@
 #pragma once
 #include<iostream>
-using std::cout;
-using std::string;
-using std::endl;
-using std::cin;
+#include<sstream>
 class bot
 {
-    private:
-        string input;
     public:
         bot();
-        bot(string in);
         bot(const bot &dup);
         bot &operator=(const bot &dup);
         ~bot();
+        std::string getanswer(std::string input);
+        int socketsmsg(std::string input);
+        std::string chatoptions();
+        std::string What_are_Sockets();
+        std::string Things_Irc();
+        std::string Importance_Byte();  
+        std::string jokes(std::string type);
+        std::string botstart(std::string msg);
+        std::string himsg();
+        std::string Zodiac(int day,int month);
+        std::string Helpbot();
+
 };
-
-bot::bot(/* args */)
-{
-}
-
-bot::~bot()
-{
-}

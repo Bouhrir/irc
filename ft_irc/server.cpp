@@ -3,6 +3,8 @@
 #include "head.hpp"
 #include <netdb.h>
 
+#include "bot.hpp"
+
 static	int	my_atoi(std::string& str) {
     size_t	i = 0;
     int		result = 0;
@@ -227,8 +229,8 @@ void server::privmsg(client *Client , std::stringstream& os){
 		channel* ch = getChannel(nickORchan);
 		if (ch) {
 			size_t pos = _token.find(':');
-			if (pos == std::string::npos)
-				msg = msg.substr(pos + 1);
+			if (pos != std::string::npos)
+				msg = _token.substr(pos + 1);
 			ch->RPL_privmsg(Client, msg);
 		} else {
 			buffer = ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), nickORchan);
@@ -239,10 +241,10 @@ void server::privmsg(client *Client , std::stringstream& os){
 		client *c = getClient(nickORchan);
 		if (c) {
 			size_t pos = _token.find(':');
-			if (pos == std::string::npos)
-				msg = msg.substr(pos + 1);
+			if (pos != std::string::npos)
+				msg = _token.substr(pos + 1);
 			buffer =  ':' + Client->getForm() + " PRIVMSG " + c->getNickname() + " :" + msg + "\r\n"; 
-			sendMessage(_server, c, msg);
+			sendMessage(_server, c, buffer);
 		} else {
 			buffer = ":" + _server->getIpaddress() + ERR_NOSUCHNICK(Client->getNickname(), nickORchan);
 			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
@@ -331,20 +333,28 @@ void server::kick(client *Client , std::stringstream& os){
 // 		////
 // 	}
 // }
+void server::bot(client *cl, std::stringstream &os){
+	std::string str;
+	ssize_t pos = _token.find(' ');
+	str = _token.substr(pos + 1);
+	std::string pong = botstart(str);
+	if (pong.c_str())
+		sendMessage(_server, cl, pong);
+}
 
 void	server::handleMsg(std::string& str, int fdClient) {
 	std::stringstream iss(str);
 	client *Client = getClient(fdClient);
 	std::cout << "----msg----\n";
-	std::string arr[] = {"WHO" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"KICK"};
+	std::string arr[] = {"WHO" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE" , "bot"};
 
-	void (server::*env[9])(client *, std::stringstream&) = {&server::who, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::mode};
+	void (server::*env[8])(client *, std::stringstream&) = {&server::who, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::bot};
 	int i = 0;
 	while (std::getline(iss, _token, '\n')){
 		std::stringstream os(_token);
 		std::string cmd;
 		os >> cmd;
-		for(; i < 10; ++i){
+		for(; i < 8; ++i){
 			if (cmd == arr[i])
 				break;
 		}
@@ -370,6 +380,8 @@ void	server::handleMsg(std::string& str, int fdClient) {
 			case 6:
 				(this->*(env[6]))(Client, os);
 				break;
+			case 7:
+				(this->*(env[7])) (Client, os);
 			default:
 				break;
 		}

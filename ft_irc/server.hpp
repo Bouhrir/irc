@@ -17,10 +17,12 @@
 #include <map>
 #include <netdb.h>
 #define IRC true
+#include "bot.hpp"
+class bot;
 class client;
 class channel;
 
-class	server {
+class	server : public bot {
 private:
 	int					_port;
 	std::string			_passwd;
@@ -82,5 +84,8 @@ public:
 
 	//Methods 
 	channel*	 createNewChannel(std::string name, client* creator);
+
+	//bot
+	void bot(client *cl, std::stringstream &os);
 };
 #endif

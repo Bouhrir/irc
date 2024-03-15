@@ -1,11 +1,11 @@
 NAME = icserv
 
-SRC = server.cpp utils.cpp client.cpp channel.cpp 
+SRC = server.cpp utils.cpp client.cpp channel.cpp bot.cpp
 CXX = c++
 
 CXXFLAGS = #-std=c++98 -fsanitize=address -g
 
-INCLUDES = head.hpp error.hpp server.hpp client.hpp
+INCLUDES = head.hpp error.hpp server.hpp client.hpp bot.hpp
 
 OBJ = ${SRC:.cpp=.o}
 
