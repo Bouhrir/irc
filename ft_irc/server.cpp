@@ -325,11 +325,37 @@ void server::mode(client *Client , std::stringstream& os){
 
 }
 
-void server::kick(client *Client , std::stringstream& os){
+void server::user(client *Client , std::stringstream& os){
 
-	std::cout << "kick\n";
-
+	std::cout << "user\n";
+	std::string usr;
+	os >> usr;
+	std::vector<client *>::iterator it = _clients.begin();
+	for (;it != _clients.end();it++){
+		if ((*it)->getUsername() == usr){
+			std::string err = ERR_ALREADYREGISTERED(usr);
+			sendMessage(_server, Client, err);
+			return;
+		}
+	}
+	Client->setUsername(usr);
 }
+void server::nick(client *Client , std::stringstream& os){
+
+	std::cout << "nick\n";
+	std::string nick;
+	os >> nick;
+	std::vector<client *>::iterator it = _clients.begin();
+	for (;it != _clients.end();it++){
+		if ((*it)->getNickname() == nick){
+			std::string err = ERR_ALREADYREGISTERED(nick);
+			sendMessage(_server, Client, err);
+			return;
+		}
+	}
+	Client->setNickname(nick);
+}
+
 //PART #gen :Leaving
 //: 403 obouhrir #ggggg :No such channel
 // void server::part(client *Client, std::stringstream& os){
@@ -350,11 +376,12 @@ void server::kick(client *Client , std::stringstream& os){
 void	server::handleMsg(std::string& str, int fdClient) {
 
 	std::stringstream iss(str);
+	std::stringstream s(str);
 	client *Client = getClient(fdClient);
 	std::cout << "----msg----\n";
-	std::string arr[] = {"WHO" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"KICK"};
+	std::string arr[] = {"WHO" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"USER", "NICK"};
 
-	void (server::*env[9])(client *, std::stringstream&) = {&server::who, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::mode};
+	void (server::*env[9])(client *, std::stringstream&) = {&server::who, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::user, &server::nick};
 	int i = 0;
 	while (std::getline(iss, _token, '\n')){
 		std::stringstream os(_token);
@@ -364,7 +391,7 @@ void	server::handleMsg(std::string& str, int fdClient) {
 		for(; i < 10; ++i){
 			if (cmd == arr[i])
 			{
-				showcase(iss);
+				showcase(s);
 				break;
 			}
 		}
@@ -389,6 +416,9 @@ void	server::handleMsg(std::string& str, int fdClient) {
 				break;
 			case 6:
 				(this->*(env[6]))(Client, os);
+				break;
+			case 7:
+				(this->*(env[7]))(Client, os);
 				break;
 			default:
 				break;
