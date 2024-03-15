@@ -107,11 +107,13 @@ std::string bot::getanswer(std::string input)
     case 1:
         return Importance_Byte();
         break;
-    default:
-        return chatoptions();
-        break;
+    // default:
+    //     return chatoptions();
+    //     break;
     }
-    return chatoptions();
+    std::string error =  "It seems like you've entered '" +  input + "' is there something specific you would like assistance with regarding this input?\n" 
+    "if you're confused to use bot check cmd '!help'\n";
+    return error;
 }
 std::string bot::himsg()
 {
@@ -146,7 +148,7 @@ std::string bot::botstart(std::string msg)
             std::cout << type << std::endl;
             return jokes(type);
         }
-        else if(msg == '2')
+        else if(msg == "2")
             return Things_Irc();
         else if(msg == "!help")
             return Helpbot();
@@ -160,7 +162,9 @@ std::string bot::botstart(std::string msg)
         }
         else
             return getanswer(msg);
-    return chatoptions();
+    std::string error =  "It seems like you've entered '" +  msg + "' is there something specific you would like assistance with regarding this input?\n" 
+    "if you're confused to use bot check cmd '!help'\n";
+    return error;
 }
 bot::~bot()
 {
