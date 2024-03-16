@@ -8,6 +8,8 @@ class server;
 
 #define MAX_CLIENT 256
 #define BUFFER_SIZE 4096
+
+
 class	client {
 private:
 	bool			_active;
