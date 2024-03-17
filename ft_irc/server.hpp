@@ -1,5 +1,4 @@
-#ifndef SERVER_HPP
-#define SERVER_HPP
+#pragma once
 
 #include"head.hpp"
 #include <netdb.h>
@@ -16,11 +15,13 @@
 #include <algorithm>
 #include <map>
 #include <netdb.h>
+#include <algorithm>
+#include "bot.hpp"
 #define IRC true
 class client;
 class channel;
 
-class	server {
+class	server : public bot{
 private:
 	int					_port;
 	std::string			_passwd;
@@ -82,5 +83,8 @@ public:
 
 	//Methods 
 	channel*	 createNewChannel(std::string name, client* creator);
+
+
+	//bot
+	void bot(client *Cl, std::stringstream &os);
 };
-#endif

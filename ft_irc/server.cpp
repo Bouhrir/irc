@@ -1,9 +1,7 @@
 #include "server.hpp"
 #include "client.hpp"
 #include "head.hpp"
-#include <map>
-#include <netdb.h>
-#include <algorithm>
+
 
 // std::map<int, std::string> clients;
 
@@ -70,7 +68,7 @@ void printascii(std::string ss){
 		else if (static_cast<int>(ss.c_str()[i]) == 13)
 			std::cout << "\\r";
 		else {
-			std::cout << static_cast<int>(ss.c_str()[i]);
+			std::cout << static_cast<char>(ss.c_str()[i]);
 		}
 	}
 
@@ -234,6 +232,7 @@ void server::privmsg(client *Client , std::stringstream& os){
 	std::string buffer, nickORchan, msg;
 
 	os >> nickORchan >> msg;
+	std::cout << nickORchan << std::endl;
 	if  (nickORchan[0] == '#'){
 		// Channel message
 		channel* ch = getChannel(nickORchan);
@@ -328,32 +327,32 @@ void server::mode(client *Client , std::stringstream& os){
 void server::user(client *Client , std::stringstream& os){
 
 	std::cout << "user\n";
-	std::string usr;
-	os >> usr;
-	std::vector<client *>::iterator it = _clients.begin();
-	for (;it != _clients.end();it++){
-		if ((*it)->getUsername() == usr){
-			std::string err = ERR_ALREADYREGISTERED(usr);
-			sendMessage(_server, Client, err);
-			return;
-		}
-	}
-	Client->setUsername(usr);
+	// std::string usr;
+	// os >> usr;
+	// std::vector<client *>::iterator it = _clients.begin();
+	// for (;it != _clients.end();it++){
+	// 	if ((*it)->getUsername() == usr){
+	// 		std::string err = ERR_ALREADYREGISTERED(usr);
+	// 		sendMessage(_server, Client, err);
+	// 		return;
+	// 	}
+	// }
+	// Client->setUsername(usr);
 }
 void server::nick(client *Client , std::stringstream& os){
 
 	std::cout << "nick\n";
-	std::string nick;
-	os >> nick;
-	std::vector<client *>::iterator it = _clients.begin();
-	for (;it != _clients.end();it++){
-		if ((*it)->getNickname() == nick){
-			std::string err = ERR_ALREADYREGISTERED(nick);
-			sendMessage(_server, Client, err);
-			return;
-		}
-	}
-	Client->setNickname(nick);
+	// std::string nick;
+	// os >> nick;
+	// std::vector<client *>::iterator it = _clients.begin();
+	// for (;it != _clients.end();it++){
+	// 	if ((*it)->getNickname() == nick){
+	// 		std::string err = ERR_ALREADYREGISTERED(nick);
+	// 		sendMessage(_server, Client, err);
+	// 		return;
+	// 	}
+	// }
+	// Client->setNickname(nick);
 }
 
 //PART #gen :Leaving
@@ -372,16 +371,24 @@ void server::nick(client *Client , std::stringstream& os){
 // 		////
 // 	}
 // }
+void server::bot(client *Cl, std::stringstream &os){
+	std::string mesg, pong;
+	size_t pos = _token.find(' ');
+	pong = _token.substr(pos + 1);
+	msg = server::botstart(pong);
+	send(Cl->getClientsock(), msg.c_str(), msg.size(), 0);
 
-void	server::handleMsg(std::string& str, int fdClient) {
+}
+
+void	server::handleMsg(std::string& str, int fdClient) { 
 
 	std::stringstream iss(str);
 	std::stringstream s(str);
 	client *Client = getClient(fdClient);
 	std::cout << "----msg----\n";
-	std::string arr[] = {"WHO" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"USER", "NICK"};
+	std::string arr[] = {"WHO" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"USER", "NICK", "bot"};
 
-	void (server::*env[9])(client *, std::stringstream&) = {&server::who, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::user, &server::nick};
+	void (server::*env[9])(client *, std::stringstream&) = {&server::who, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::user, &server::nick, &server::bot};
 	int i = 0;
 	while (std::getline(iss, _token, '\n')){
 		std::stringstream os(_token);
@@ -391,7 +398,7 @@ void	server::handleMsg(std::string& str, int fdClient) {
 		for(; i < 10; ++i){
 			if (cmd == arr[i])
 			{
-				showcase(s);
+				// showcase(s);
 				break;
 			}
 		}
@@ -420,6 +427,8 @@ void	server::handleMsg(std::string& str, int fdClient) {
 			case 7:
 				(this->*(env[7]))(Client, os);
 				break;
+			case 8:
+				(this->*(env[8]))(Client, os);
 			default:
 				break;
 		}
@@ -472,9 +481,8 @@ void server::listofclients(std::vector<struct pollfd> &fds){
 					all.clear();
 					all = _buff;
 				}
-				else{
+				else if (read <= 0 || errno == EPIPE)
 					break;
-				}
 
 			}
 			check_requ(all, fds[i].fd);
