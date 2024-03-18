@@ -34,7 +34,7 @@ private:
     size_t 				nfds;
 	std::string			_token;
 	int					_id;
-
+	bool				_quit;
 	
 	bool				validPASS(std::stringstream &iss);
 	std::string 		msg;

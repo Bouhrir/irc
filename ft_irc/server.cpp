@@ -385,10 +385,11 @@ void	server::handleMsg(std::string& str, int fdClient) {
 	std::stringstream iss(str);
 	std::stringstream s(str);
 	client *Client = getClient(fdClient);
-	std::cout << "----msg----\n";
-	std::string arr[] = {"WHO" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE"  ,"USER", "NICK", "bot"};
 
-	void (server::*env[9])(client *, std::stringstream&) = {&server::who, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::user, &server::nick, &server::bot};
+	std::cout << "----msg----\n";
+	std::string arr[] = {"WHO" ,"JOIN" ,"PRIVMSG" ,"TOPIC" ,"INVITE" ,"MODE" , "bot", "QUIT"};
+
+	void (server::*env[9])(client *, std::stringstream&) = {&server::who, &server::join , &server::privmsg, &server::topic, &server::invite, &server::mode, &server::bot};
 	int i = 0;
 	while (std::getline(iss, _token, '\n')){
 		std::stringstream os(_token);
@@ -425,10 +426,8 @@ void	server::handleMsg(std::string& str, int fdClient) {
 				(this->*(env[6]))(Client, os);
 				break;
 			case 7:
-				(this->*(env[7]))(Client, os);
+				_quit = true;
 				break;
-			case 8:
-				(this->*(env[8]))(Client, os);
 			default:
 				break;
 		}
@@ -471,9 +470,8 @@ void server::listofclients(std::vector<struct pollfd> &fds){
 			char buff[BUFFER_SIZE];
 			int read;
 			while (true){
-
 				read = recv(fds[i].fd, buff, sizeof(buff), 0);
-		
+
 				if (read > 0 && errno != EPIPE){
 					buff[read] = '\0';
 					std::string _buff;
@@ -483,15 +481,16 @@ void server::listofclients(std::vector<struct pollfd> &fds){
 				}
 				else if (read <= 0 || errno == EPIPE)
 					break;
-
+				// usleep(100);
 			}
 			check_requ(all, fds[i].fd);
-			if (fds[i].revents & (POLLHUP | POLLERR)){
+			if (fds[i].revents & (POLLHUP | POLLERR) || _quit){
 				//del user if disconnected
 				if (i > 0){
 					std::cerr << "<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected" << std::endl;
 					close(fds[i].fd);
 					fds.erase(fds.begin() + i);
+					_quit = false;
 				}
 			}
 		}
@@ -532,6 +531,8 @@ void	server::launch(std::string	passwd, std::string	port) {
 	_server_sock = open_socket();
 	_server = new client(_server_sock);
 	_server->setIpAddress(getipmachine()); //anaaaaa 4adi ldaaar
+
+	_quit = false;
 
 	_server_addr.sin_family = AF_INET;
 	_server_addr.sin_port = htons(_port);
