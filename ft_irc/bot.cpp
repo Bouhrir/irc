@@ -134,11 +134,11 @@ std::string bot::botstart(std::string msg)
 {
         std::string day;
         std::string month,box;
-        if(msg == "hi" || msg == "hey" || msg == "hello")
+        if(!msg.compare(0, 2, "hi") || !msg.compare(0, 3, "hey") || !msg.compare(0, 5, "hello"))
         {
             return himsg();
         }
-        else if(msg == "O")
+        else if(!msg.compare(0, 1, "O"))
             return chatoptions();
         else if(msg[0] == '1' && msg[1] == ' ')
         {
