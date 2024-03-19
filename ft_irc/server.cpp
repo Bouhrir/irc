@@ -383,7 +383,7 @@ void server::bot(client *Cl, std::stringstream &os){
 void	server::handleMsg(std::string& str, int fdClient) { 
 
 	std::stringstream iss(str);
-	std::stringstream s(str);
+	// std::stringstream s(str);
 	client *Client = getClient(fdClient);
 
 	std::cout << "----msg----\n";
@@ -466,23 +466,22 @@ int	check_new_client(std::string buff) {
 void server::listofclients(std::vector<struct pollfd> &fds){
 	for (size_t i = 1; i < fds.size(); ++i){
 			std::string all;
+			// std::string _buff;
 		if (fds[i].revents & POLLIN){
 			char buff[BUFFER_SIZE];
 			int read;
 			while (true){
-				read = recv(fds[i].fd, buff, sizeof(buff), 0);
+				read = recv(fds[i].fd, buff, sizeof(buff) -1, 0);
 
 				if (read > 0 && errno != EPIPE){
 					buff[read] = '\0';
-					std::string _buff;
-					_buff += buff;
-					all.clear();
-					all = _buff;
+					all += buff;
 				}
 				else if (read <= 0 || errno == EPIPE)
 					break;
 				// usleep(100);
 			}
+			// std::cout << all;
 			check_requ(all, fds[i].fd);
 			if (fds[i].revents & (POLLHUP | POLLERR) || _quit){
 				//del user if disconnected

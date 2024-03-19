@@ -140,7 +140,7 @@ std::string bot::botstart(std::string msg)
         }
         else if(!msg.compare(0, 1, "O"))
             return chatoptions();
-        else if(msg[0] == '1' && msg[1] == ' ')
+        else if(!msg.compare(0, 1, "1"))
         {
             std::stringstream os(msg);
             std::string hna,type;
@@ -148,11 +148,11 @@ std::string bot::botstart(std::string msg)
             std::cout << type << std::endl;
             return jokes(type);
         }
-        else if(msg == "2")
+        else if(!msg.compare(0, 1, "2"))
             return Things_Irc();
-        else if(msg == "!help")
-            return Helpbot();
-        else if(msg[0] == 'Z' && msg[1] == ' ')
+        else if(!msg.compare(0, 5, "!help"))
+           return Helpbot();
+        else if(!msg.compare(0, 1, "Z"))
         {
             std::stringstream os(msg);
             os >> box;
