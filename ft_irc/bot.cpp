@@ -26,14 +26,14 @@ int bot::socketsmsg(std::string input)
 }
 std::string bot::jokes(std::string type)
 {
-    int nokta = rand() % 5;
-    std::string darija[5] ={ "Waa tga3ad a regraguie\n","2","3","4","5"};
+    int nokta = time(NULL) % 5;
+    std::string darija[5] ={ "Waa tga3ad a regraguie","2","3","4","5"};
     if(type == "darija")
-        return darija[nokta];
-    std::string cooding[5] = {"Why did the programmer go broke?\nBecause he used up all his cache.\n","2","3","4","5"};
+        return darija[nokta] + "\r\n";
+    std::string cooding[5] = {"Why did the programmer go broke?\nBecause he used up all his cache.","2","3","4","5"};
     if(type == "cooding")
-        return cooding[nokta];
-    return "unknown type :";
+        return cooding[nokta] + "\r\n";
+    return "unknown type :\r\n";
 }
 std::string bot::Things_Irc()
 {
