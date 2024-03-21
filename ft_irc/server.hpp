@@ -87,9 +87,6 @@ public:
 	channel*	 createNewChannel(std::string name, client* creator);
 
 
-};
-#endif
-
 	//bot
 	void bot(client *Cl, std::stringstream &os);
 };
