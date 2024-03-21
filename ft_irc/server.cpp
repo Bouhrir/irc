@@ -238,8 +238,8 @@ void server::privmsg(client *Client , std::stringstream& os){
 		channel* ch = getChannel(nickORchan);
 		if (ch) {
 			size_t pos = _token.find(':');
-			if (pos == std::string::npos)
-				msg = msg.substr(pos + 1);
+			if (pos != std::string::npos)
+				msg = _token.substr(pos + 1);
 			ch->RPL_privmsg(Client, msg);
 		} else {
 			buffer = ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), nickORchan);
@@ -377,7 +377,6 @@ void server::bot(client *Cl, std::stringstream &os){
 	pong = _token.substr(pos + 1);
 	msg = server::botstart(pong);
 	send(Cl->getClientsock(), msg.c_str(), msg.size(), 0);
-
 }
 
 void	server::handleMsg(std::string& str, int fdClient) { 
@@ -395,7 +394,6 @@ void	server::handleMsg(std::string& str, int fdClient) {
 		std::stringstream os(_token);
 		std::string cmd;
 		os >> cmd;
-		
 		for(; i < 10; ++i){
 			if (cmd == arr[i])
 			{

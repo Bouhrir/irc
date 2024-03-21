@@ -18,6 +18,8 @@
 #include <algorithm>
 #include "bot.hpp"
 #define IRC true
+#include "bot.hpp"
+class bot;
 class client;
 class channel;
 
@@ -84,6 +86,9 @@ public:
 	//Methods 
 	channel*	 createNewChannel(std::string name, client* creator);
 
+
+};
+#endif
 
 	//bot
 	void bot(client *Cl, std::stringstream &os);
