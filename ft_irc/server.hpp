@@ -73,8 +73,7 @@ public:
 
 	///commands
 	void who( client *, std::stringstream& );
-	void user( client *, std::stringstream& );
-	void nick( client *, std::stringstream& );
+	void part( client *, std::stringstream& );
 	void join( client *, std::stringstream& );
 	void privmsg( client *, std::stringstream& );
 	void topic( client *, std::stringstream& );
@@ -86,6 +85,9 @@ public:
 	//Methods 
 	channel*	 createNewChannel(std::string name, client* creator);
 
+	void	quiteMessege(int fd);
+	void	removeclient(client  *cl);
+	void	removeChannel(channel  *ch);
 
 };
 #endif
