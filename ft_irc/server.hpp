@@ -18,6 +18,8 @@
 #include <algorithm>
 #include "bot.hpp"
 #define IRC true
+#include "bot.hpp"
+class bot;
 class client;
 class channel;
 
@@ -90,6 +92,9 @@ public:
 	void	quiteMessege(int fd);
 	void	removeclient(client  *cl);
 	void	removeChannel(channel  *ch);
+
+};
+#endif
 
 	//bot
 	void bot(client *Cl, std::stringstream &os);

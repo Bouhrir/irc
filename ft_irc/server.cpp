@@ -404,7 +404,6 @@ void server::bot(client *Cl, std::stringstream &os){
 	pong = _token.substr(pos + 1);
 	msg = server::botstart(pong);
 	send(Cl->getClientsock(), msg.c_str(), msg.size(), 0);
-
 }
 
 void	server::broadcast(const std::string& message) {
@@ -426,7 +425,6 @@ void	server::handleMsg(std::string& str, int fdClient) {
 		std::stringstream os(_token);
 		std::string cmd;
 		os >> cmd;
-		
 		for(; i < 10; ++i){
 			if (cmd == arr[i])
 			{
