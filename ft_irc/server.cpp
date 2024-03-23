@@ -359,13 +359,57 @@ void server::kick(client *Client , std::stringstream& os){
 	}
 }
 
+void	server::user( client *Client, std::stringstream& os) {
+	std::cout << "user\n";
+	std::string user, response;
+
+	// os >> user;
+	// if (!user.empty()) {
+	// 	Client->setUsername(user);
+	// } else {
+
+	// }
+
+}
+
+void	server::nick( client  *Client, std::stringstream& os) {
+	std::cout << "nick\n";
+	std::string nick, response;
+
+	os >> nick;
+	if (!nick.empty()) {
+		client *cl = getClient(nick);
+		if (!cl) {
+			if (nick[0] == '#') {
+				response = ":" + Client->getIpaddress() + ERR_ERRONEUSNICKNAME(Client->getNickname(), nick);
+				sendMessage(_server, Client, response);
+			} else {
+				Client->setNickname(nick);
+				response = ":"  + _server->getForm() + " NICK :" + nick + "\r\n";
+				broadcast(response);
+			}
+		} else {
+			response = ":" + Client->getIpaddress() + ERR_NICKNAMEINUSE(Client->getNickname(), nick);
+			sendMessage(_server, Client, response);
+		}
+	} else {
+		response = ":" + Client->getIpaddress() + ERR_NONICKNAMEGIVEN(Client->getNickname());
+		sendMessage(_server, Client, response);
+	}
+}
+
 void server::bot(client *Cl, std::stringstream &os){
 	std::string mesg, pong;
 	size_t pos = _token.find(' ');
 	pong = _token.substr(pos + 1);
 	msg = server::botstart(pong);
 	send(Cl->getClientsock(), msg.c_str(), msg.size(), 0);
+}
 
+void	server::broadcast(const std::string& message) {
+	for (size_t i = 0; i < _clients.size(); ++i) {
+		sendMessage(_server, _clients[i], message);
+	}
 }
 
 void	server::handleMsg(std::string& str, int fdClient) { 
@@ -381,7 +425,6 @@ void	server::handleMsg(std::string& str, int fdClient) {
 		std::stringstream os(_token);
 		std::string cmd;
 		os >> cmd;
-		
 		for(; i < 10; ++i){
 			if (cmd == arr[i])
 			{
@@ -458,7 +501,7 @@ void	server::removeChannel(channel *ch) {
     if (it != _channels.end()) {
         _channels.erase(it);
     }
-
+	delete ch;
 }
 
 
@@ -473,17 +516,19 @@ void	server::removeclient(client  *cl) {
 void	server::quiteMessege(int fd) {
 	std::string response;
 	client	*cl = getClient(fd);
-	std::cout << "dkhal hna?\n";
+
 	for (size_t i = 0; i < _channels.size(); ++i) {
-		if (_channels[i]->isCreator(cl)) { 
+		if (_channels[i]->isCreator(cl)) {
 			removeChannel(_channels[i]);
+			break ;
 		} else if (_channels[i]->isMember(cl)) {
 			response = ":" + cl->getForm() + " QUIT :\r\n";
-			_channels[i]->removeMember(cl);
-			removeclient(cl);
 			_channels[i]->sendToAllMembers(response);
+			_channels[i]->removeMember(cl);
+			break ;
 		}
 	}
+	removeclient(cl);
 	delete cl;
 }
 
@@ -508,10 +553,11 @@ void server::listofclients(std::vector<struct pollfd> &fds) {
 				}
 			}
 			check_requ(all, fds[i].fd);
-			if (fds[i].revents & (POLLHUP | POLLERR) || _quit) {
+			if (fds[i].revents & (POLLHUP | POLLIN) || _quit) {
 				//del user if disconnected
 				if (i > 0) {
 					std::cerr << "<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected" << std::endl;
+					client  *cl = getClient(fds[i].fd);
 					quiteMessege(fds[i].fd);
 					close(fds[i].fd);
 					fds.erase(fds.begin() + i);
@@ -585,6 +631,7 @@ void	server::launch(std::string	passwd, std::string	port) {
     fds[0].fd = _server_sock;
     fds[0].events = POLLIN;
 	signal(SIGPIPE, SIG_IGN);
+	// bot = new client();
     while (IRC) {
         // multiplexing
         setpoll(poll(&fds[0], nfds, -1));

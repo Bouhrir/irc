@@ -18,6 +18,8 @@
 #include <algorithm>
 #include "bot.hpp"
 #define IRC true
+#include "bot.hpp"
+class bot;
 class client;
 class channel;
 
@@ -40,6 +42,7 @@ private:
 	std::string 		msg;
 
 	client				*_server;
+	client				*_bot;
 public:
 
 	void				new_client(std::string& , int);
@@ -61,6 +64,7 @@ public:
 	void 	setpoll(int);
 	void 	check_requ( std::string , int);
 	void	sendMessage(client	*from , client *to, const std::string& msg) const;
+	void	broadcast( const std::string& message );
 	void	listofclients(std::vector<struct pollfd> &fds);
 	///
 	std::string 	creatPong(std::string &, client *, std::string ) ;
@@ -78,6 +82,8 @@ public:
 	void invite( client *, std::stringstream& );
 	void mode( client *, std::stringstream& );
 	void kick( client *, std::stringstream& );
+	void user( client *, std::stringstream& );
+	void nick( client  *, std::stringstream& );
 
 
 	//Methods 
@@ -86,6 +92,9 @@ public:
 	void	quiteMessege(int fd);
 	void	removeclient(client  *cl);
 	void	removeChannel(channel  *ch);
+
+};
+#endif
 
 	//bot
 	void bot(client *Cl, std::stringstream &os);
