@@ -1,3 +1,4 @@
-.o
+*.o
 ircsrv
 .vscode
+.DS_Store

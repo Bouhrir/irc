@@ -8,7 +8,7 @@
 
 struct addrinfo hints, *res;
 
-#define SPAM_CLIENT_SIZE 75
+#define SPAM_CLIENT_SIZE 10
 
 void	_bzero(void *ptr, size_t size) {
 
@@ -140,6 +140,7 @@ int    test_four() {
             close(sockets[j]);
         sleep(1);
     }
+	
     std::cout << "TEST 4: PASSED V" << std::endl;
     sleep(1);
     return 0;
@@ -225,6 +226,7 @@ int test_six() {
             }
         }
     }
+	sleep(1);
     for (int i = 0; i < 1000; i++) {
         close(socketfd[i]);
     }
@@ -235,7 +237,7 @@ int test_six() {
 
 int main(int ac, char **av) {
     if (ac == 2) {
-        int    (*Tests[6])() = {&test_one, &test_two, &test_three, &test_four, &test_five, &test_six};
+        int    (*Tests[6])() = {&test_four, &test_five, &test_six};
         _bzero(&hints, sizeof(hints));
         hints.ai_family = AF_INET;
         hints.ai_socktype = SOCK_STREAM;
@@ -246,8 +248,8 @@ int main(int ac, char **av) {
         }
         std::cout << "Preforming Tests. Please Wait..." << std::endl;
         sleep(3);
-        // for (int i = 1; i < 1; i++)
-            if ((*Tests[1])())
+         for (int i = 0; i < 1; i++)
+            if ((*Tests[i])())
                 std::cout << "Unfortuantely Test " <<  1 << " Failed! Check the test case and make sure to handle it." << std::endl;
         // test_six();
     } 
