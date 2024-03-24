@@ -536,17 +536,8 @@ void	server::quiteMessege(int fd) {
 void server::listofclients(std::vector<struct pollfd> &fds) {
 	for (size_t i = 1; i < fds.size(); ++i){
 		std::string all;
-		if ((fds[i].revents & (POLLHUP | POLLERR)) || _quit) {
-			//del user if disconnected
-			if (i < fds.size()) {
-				std::cerr << "<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected" << std::endl;
-				quiteMessege(fds[i].fd);
-				fds.erase(fds.begin() + i);
-				--i;
-				_quit = false;
-			}
-		}
-		else if (fds[i].revents & POLLIN) {
+		
+		if (fds[i].revents & POLLIN) {
 			std::string tmp;
 			char buff[BUFFER_SIZE];
 			int read;
@@ -562,6 +553,15 @@ void server::listofclients(std::vector<struct pollfd> &fds) {
 					break;
 			}
 			check_requ(all, fds[i].fd);
+			if ((fds[i].revents & (POLLHUP | POLLERR)) || _quit) {
+			//del user if disconnected
+			if (i > 0) {
+				std::cerr << "<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected" << std::endl;
+				quiteMessege(fds[i].fd);
+				fds.erase(fds.begin() + i);
+				_quit = false;
+			}
+		}
 		}
 	}
 }
