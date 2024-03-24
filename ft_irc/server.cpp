@@ -554,14 +554,14 @@ void server::listofclients(std::vector<struct pollfd> &fds) {
 			}
 			check_requ(all, fds[i].fd);
 			if ((fds[i].revents & (POLLHUP | POLLERR)) || _quit) {
-			//del user if disconnected
-			if (i > 0) {
-				std::cerr << "<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected" << std::endl;
-				quiteMessege(fds[i].fd);
-				fds.erase(fds.begin() + i);
-				_quit = false;
+				//del user if disconnected
+				if (i > 0) {
+					std::cerr << "\033[1;41m<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected\033[0m" << std::endl;
+					quiteMessege(fds[i].fd);
+					fds.erase(fds.begin() + i);
+					_quit = false;
+				}
 			}
-		}
 		}
 	}
 }
@@ -586,10 +586,6 @@ std::string getipmachine() {
 
     // Retrieve IP addresses
     addr_list = (struct in_addr **)host_entry->h_addr_list;
-    for (i = 0; addr_list[i] != NULL; i++) {
-        printf("IP Address %d: %s\n", i + 1, inet_ntoa(*addr_list[i]));
-    }
-
     return inet_ntoa(*addr_list[0]);
 }
 // Server Setup
@@ -618,12 +614,9 @@ void	server::launch(std::string	passwd, std::string	port) {
 		throw	std::runtime_error("Failed in listening to server's socket: " + std::string(strerror(errno)));
 	}
 
-	socklen_t TEST = sizeof(_server_addr);
-	// getsockname(_server_sock, (sockaddr *)&_server_addr, &TEST);
-	std::cout << "SERVER IP CONNECTED: " << _server->getIpaddress() << "\n";
-
-	// _server->setIpAddress(inet_ntoa(_server_addr.sin_addr));
-	std::cout << "\033[1;42mThe server is listening on the port\033[0m ==> " << "\033[1;41m" << _port << "\033[0m" <<  std::endl;
+	std::cout << "\033[1;42mSERVER IP CONNECTED: \033[0m ==> " << "\033[1;41m"  << _server->getIpaddress() << "\033[0m" << "\n\n";
+	sleep(1);
+	std::cout << "\033[1;42mTHE SERVER IS LISTENING ON THE PORT\033[0m ==> " << "\033[1;41m" << _port << "\033[0m" <<  "\n\n";
 	std::vector<struct pollfd> fds(MAX_CLIENT + 1);
     // Add the server socket to the fds vector
     fds[0].fd = _server_sock;
@@ -640,7 +633,7 @@ void	server::launch(std::string	passwd, std::string	port) {
 			if (clientSocket == -1)
 				throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
 			fcntl(clientSocket, F_SETFL, O_NONBLOCK) ;
-			std::cout << "NEW CLIENT CONNECTED: " << inet_ntoa(_client_addr.sin_addr) << "\n";
+			std::cout << "\033[1;42mNEW CLIENT CONNECTED: \033[0m ==> \033[1;41m" << inet_ntoa(_client_addr.sin_addr) << "\033[0m\n";
 			fds[nfds].fd = clientSocket;
 			fds[nfds].events = POLLIN | POLLOUT;
 			srand(time(NULL));
