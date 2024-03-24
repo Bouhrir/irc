@@ -93,8 +93,7 @@ public:
 	void	removeclient(client  *cl);
 	void	removeChannel(channel  *ch);
 
-};
-#endif
+
 
 	//bot
 	void bot(client *Cl, std::stringstream &os);

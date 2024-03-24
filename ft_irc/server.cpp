@@ -528,6 +528,7 @@ void	server::quiteMessege(int fd) {
 			break ;
 		}
 	}
+	close(fd);
 	removeclient(cl);
 	delete cl;
 }
@@ -535,35 +536,32 @@ void	server::quiteMessege(int fd) {
 void server::listofclients(std::vector<struct pollfd> &fds) {
 	for (size_t i = 1; i < fds.size(); ++i){
 		std::string all;
+		
 		if (fds[i].revents & POLLIN) {
+			std::string tmp;
 			char buff[BUFFER_SIZE];
 			int read;
 			while (true) {
 				read = recv(fds[i].fd, buff, sizeof(buff) -1, 0);
-
 				if (read > 0 && errno != EPIPE){
 					buff[read] = '\0';
-					all += buff;
+					tmp = buff;
+					all.clear();
+					all = all + tmp;
 				}
-				else if (read <= 0 || errno == EPIPE) {
-					// std::cout << "start" << std::endl;
-					// std::cout << all << std::endl;
-					// std::cout << "end" << std::endl;
+				else if (read <= 0 || errno == EPIPE)
 					break;
-				}
 			}
 			check_requ(all, fds[i].fd);
-			if (fds[i].revents & (POLLHUP | POLLIN) || _quit) {
-				//del user if disconnected
-				if (i > 0) {
-					std::cerr << "<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected" << std::endl;
-					client  *cl = getClient(fds[i].fd);
-					quiteMessege(fds[i].fd);
-					close(fds[i].fd);
-					fds.erase(fds.begin() + i);
-					_quit = false;
-				}
+			if ((fds[i].revents & (POLLHUP | POLLERR)) || _quit) {
+			//del user if disconnected
+			if (i > 0) {
+				std::cerr << "<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected" << std::endl;
+				quiteMessege(fds[i].fd);
+				fds.erase(fds.begin() + i);
+				_quit = false;
 			}
+		}
 		}
 	}
 }
