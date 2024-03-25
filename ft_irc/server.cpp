@@ -582,13 +582,9 @@ void server::listofclients(std::vector<struct pollfd> &fds) {
 				if (i > 0) {
 					std::cerr << "\033[1;41m<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected\033[0m" << std::endl;
 					quiteMessege(fds[i].fd);
-
-					// std::vector<struct pollfd>::iterator it = std::find(fds.begin(), fds.end(), fds[i]);
-					close(fds[i].fd);
 					std::vector<struct pollfd>::iterator it = fds.begin();
 					std::advance(it, i);
 					fds.erase(it);
-					std::cout <<  fds.size() << std::endl;
 					_quit = false;
 				}
 			}
