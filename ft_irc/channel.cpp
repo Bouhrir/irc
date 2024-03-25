@@ -285,8 +285,10 @@ void	channel::RPL_join(client *cl) {
 			sendMessage(_server, cl, response);
 		}
 	} else {
-		response = ":" + cl->getForm() +  " JOIN " + _name + " * :realname\r\n";
-		sendToAllMembers(response);
+		if (cl){
+			response = ":" + cl->getForm() +  " JOIN " + _name + " * :realname\r\n";
+			sendToAllMembers(response);
+		}
 	}
 }
 
@@ -318,9 +320,11 @@ void	channel::RPL_part(client *cl) {
 	if (isMember(cl)) {
 		if (isOperator(cl))
 			removeOperator(cl);
-		response = ":" + cl->getForm() + " PART " + _name + " :leaving channel\r\n";
-		sendToAllMembers(response);
-		removeMember(cl);
+		if (cl){
+			response = ":" + cl->getForm() + " PART " + _name + " :leaving channel\r\n";
+			sendToAllMembers(response);
+			removeMember(cl);
+		}
 	} else {
 		response = ":" + _server->getIpaddress() + ERR_NOTONCHANNEL(cl->getNickname(), _name);
 		sendMessage(_server, cl, response);

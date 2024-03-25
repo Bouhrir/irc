@@ -6,7 +6,7 @@
 #include "server.hpp"
 class server;
 
-#define MAX_CLIENT 256
+#define MAX_CLIENT 75
 #define BUFFER_SIZE 4096
 
 

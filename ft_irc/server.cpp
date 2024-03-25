@@ -1,6 +1,8 @@
 #include "server.hpp"
 #include "client.hpp"
 #include "head.hpp"
+#include <algorithm>
+#include <iterator>
 
 
 // std::map<int, std::string> clients;
@@ -57,7 +59,7 @@ server::~server() {
 
 void server::setpoll(int act){
 	_activity = act;
-	if (_activity == -1)
+	if (_activity <= 0)
 		throw std::runtime_error("Failed in poll(): " + std::string(strerror(errno)));
 }
 
@@ -201,7 +203,8 @@ void server::who(client *Client , std::stringstream& os){
 	os >> chan;
 	channel	*ch = getChannel(chan);
 	if (!ch) {
-		sendMessage(_server, Client, ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan));
+		if (Client)
+			sendMessage(_server, Client, ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan));
 	} else {
 		ch->RPL_who(Client);
 	}
@@ -222,8 +225,10 @@ void server::join(client *Client , std::stringstream& os){
 		}
 	}
 	else {
-		buffer = ":" + _server->getIpaddress() +  ERR_NOSUCHCHANNEL(Client->getNickname(), chan);
-		send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+		if (Client){
+			buffer = ":" + _server->getIpaddress() +  ERR_NOSUCHCHANNEL(Client->getNickname(), chan);
+			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+		}
 	}
 
 }
@@ -243,8 +248,10 @@ void server::privmsg(client *Client , std::stringstream& os){
 				msg = _token.substr(pos + 1);
 			ch->RPL_privmsg(Client, msg);
 		} else {
-			buffer = ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), nickORchan);
-			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+			if (Client){
+				buffer = ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), nickORchan);
+				send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+			}
 		}
 	} else {
 		// Private Message
@@ -256,8 +263,10 @@ void server::privmsg(client *Client , std::stringstream& os){
 			buffer =  ':' + Client->getForm() + " PRIVMSG " + c->getNickname() + " :" + msg + "\r\n"; 
 			sendMessage(_server, c, buffer);
 		} else {
-			buffer = ":" + _server->getIpaddress() + ERR_NOSUCHNICK(Client->getNickname(), nickORchan);
-			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+			if (Client){
+				buffer = ":" + _server->getIpaddress() + ERR_NOSUCHNICK(Client->getNickname(), nickORchan);
+				send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+			}
 		}
 	}
 }
@@ -271,8 +280,11 @@ void server::topic(client *Client , std::stringstream& os){
 	if (ch) {
 		ch->RPL_topic(Client, topic);
 	} else {
+		if (Client){
+
 		buffer = ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan);
 		send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);	
+		}
 	}
 }
 
@@ -291,8 +303,10 @@ void server::invite(client *Client , std::stringstream& os){
 			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);			
 		}
 	} else {
-		buffer =  ":" + _server->getIpaddress() + ERR_NOSUCHNICK(Client->getNickname(), nick);
-		send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+		if (Client){
+			buffer =  ":" + _server->getIpaddress() + ERR_NOSUCHNICK(Client->getNickname(), nick);
+			send(Client->getClientsock(), buffer.c_str(), buffer.size(), 0);
+		}
 	}
 }
 
@@ -308,7 +322,8 @@ void server::mode(client *Client , std::stringstream& os){
 			if (ch->isOperator(Client)) {
 				ch->validModes(Client, modes, param);
 			} else {
-				sendMessage(_server, Client, ":" + _server->getIpaddress() + ERR_CHANOPRIVSNEEDED(Client->getNickname(), chan));
+				if (Client)
+					sendMessage(_server, Client, ":" + _server->getIpaddress() + ERR_CHANOPRIVSNEEDED(Client->getNickname(), chan));
 			}
 		} else {
 			// VEIW MODE
@@ -318,7 +333,8 @@ void server::mode(client *Client , std::stringstream& os){
 			ch->RPL_mode(Client);
 		}
 	} else {
-		sendMessage(_server, Client,  ": " + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan));
+		if (Client)
+			sendMessage(_server, Client,  ": " + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan));
 	}
 }
  //PART #chan :Leavin
@@ -332,8 +348,10 @@ void server::part(client *Client , std::stringstream& os){
 		if (!ch->isCreator(Client))
 			ch->RPL_part(Client);
 	} else {
-		response =  ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan);
-		send(Client->getClientsock(), response.c_str(), response.size(), 0);	
+		if (Client){
+			response =  ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan);
+			send(Client->getClientsock(), response.c_str(), response.size(), 0);	
+		}
 	}
 }
 
@@ -354,8 +372,10 @@ void server::kick(client *Client , std::stringstream& os){
 			send(Client->getClientsock(), response.c_str(), response.size(), 0);
 		}
 	} else {
-		response =  ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan);
-		send(Client->getClientsock(), response.c_str(), response.size(), 0);			
+		if (Client){
+			response =  ":" + _server->getIpaddress() + ERR_NOSUCHCHANNEL(Client->getNickname(), chan);
+			send(Client->getClientsock(), response.c_str(), response.size(), 0);			
+		}
 	}
 }
 
@@ -389,12 +409,16 @@ void	server::nick( client  *Client, std::stringstream& os) {
 				broadcast(response);
 			}
 		} else {
-			response = ":" + Client->getIpaddress() + ERR_NICKNAMEINUSE(Client->getNickname(), nick);
-			sendMessage(_server, Client, response);
+			if(Client){
+				response = ":" + Client->getIpaddress() + ERR_NICKNAMEINUSE(Client->getNickname(), nick);
+				sendMessage(_server, Client, response);
+			}
 		}
 	} else {
-		response = ":" + Client->getIpaddress() + ERR_NONICKNAMEGIVEN(Client->getNickname());
-		sendMessage(_server, Client, response);
+		if (Client){
+			response = ":" + Client->getIpaddress() + ERR_NONICKNAMEGIVEN(Client->getNickname());
+			sendMessage(_server, Client, response);
+		}
 	}
 }
 
@@ -536,7 +560,6 @@ void	server::quiteMessege(int fd) {
 void server::listofclients(std::vector<struct pollfd> &fds) {
 	for (size_t i = 1; i < fds.size(); ++i){
 		std::string all;
-		
 		if (fds[i].revents & POLLIN) {
 			std::string tmp;
 			char buff[BUFFER_SIZE];
@@ -553,16 +576,22 @@ void server::listofclients(std::vector<struct pollfd> &fds) {
 					break;
 			}
 			check_requ(all, fds[i].fd);
-			if ((fds[i].revents & (POLLHUP | POLLERR)) || _quit) {
+		}
+		if ((fds[i].revents & (POLLHUP | POLLERR)) || _quit) {
 				//del user if disconnected
 				if (i > 0) {
 					std::cerr << "\033[1;41m<fd=" << fds[i].fd << "> IP " <<  inet_ntoa(_client_addr.sin_addr) << ": disconnected\033[0m" << std::endl;
 					quiteMessege(fds[i].fd);
-					fds.erase(fds.begin() + i);
+
+					// std::vector<struct pollfd>::iterator it = std::find(fds.begin(), fds.end(), fds[i]);
+					close(fds[i].fd);
+					std::vector<struct pollfd>::iterator it = fds.begin();
+					std::advance(it, i);
+					fds.erase(it);
+					std::cout <<  fds.size() << std::endl;
 					_quit = false;
 				}
 			}
-		}
 	}
 }
 
@@ -575,17 +604,18 @@ std::string getipmachine() {
     // Get the hostname
     if (gethostname(hostname, sizeof(hostname)) == -1) {
         perror("Error getting hostname");
-        return 0;
+        return "127.0.0.1";
     }
 
     // Get host entry
     if ((host_entry = gethostbyname(hostname)) == NULL) {
         perror("Error getting host entry");
-        return 0;
+        return "127.0.0.1";
     }
 
     // Retrieve IP addresses
     addr_list = (struct in_addr **)host_entry->h_addr_list;
+	close(5);
     return inet_ntoa(*addr_list[0]);
 }
 // Server Setup
@@ -617,29 +647,36 @@ void	server::launch(std::string	passwd, std::string	port) {
 	std::cout << "\033[1;42mSERVER IP CONNECTED: \033[0m ==> " << "\033[1;41m"  << _server->getIpaddress() << "\033[0m" << "\n\n";
 	sleep(1);
 	std::cout << "\033[1;42mTHE SERVER IS LISTENING ON THE PORT\033[0m ==> " << "\033[1;41m" << _port << "\033[0m" <<  "\n\n";
-	std::vector<struct pollfd> fds(MAX_CLIENT + 1);
+	std::vector<struct pollfd> fds;
     // Add the server socket to the fds vector
-    fds[0].fd = _server_sock;
-    fds[0].events = POLLIN;
+	struct pollfd srv;
+
+    srv.fd = _server_sock;
+   	srv.events = POLLIN;
+	fds.push_back(srv);
 	signal(SIGPIPE, SIG_IGN);
 	// bot = new client();
+	nfds = 1;
     while (IRC) {
         // multiplexing
-        setpoll(poll(&fds[0], nfds, -1));
+        setpoll(poll(&fds[0], fds.size(), -1));
 		//accept new clients
 		if (fds[0].revents & POLLIN){
+			struct pollfd cl;
 			_c_addr_len = sizeof(_client_addr);
 			int clientSocket = accept(_server_sock, (struct sockaddr *)(&_client_addr), &_c_addr_len);
 			if (clientSocket == -1)
 				throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
 			fcntl(clientSocket, F_SETFL, O_NONBLOCK) ;
 			std::cout << "\033[1;42mNEW CLIENT CONNECTED: \033[0m ==> \033[1;41m" << inet_ntoa(_client_addr.sin_addr) << "\033[0m\n";
-			fds[nfds].fd = clientSocket;
-			fds[nfds].events = POLLIN | POLLOUT;
+			cl.fd = clientSocket;
+			cl.events = POLLIN | POLLOUT;
+			fds.push_back(cl);
 			srand(time(NULL));
 			_id = rand() % 1000;
 			++nfds;
 		}
+		
 		//check request
 		listofclients(fds);
 	}

@@ -3,7 +3,7 @@ NAME = ircserv
 SRC = server.cpp utils.cpp client.cpp channel.cpp bot.cpp
 CXX = c++
 
-CXXFLAGS = #-std=c++98 -fsanitize=address -g
+CXXFLAGS = -std=c++98 -fsanitize=address -g
 
 INCLUDES = head.hpp error.hpp server.hpp client.hpp bot.hpp
 
