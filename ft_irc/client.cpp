@@ -18,17 +18,8 @@ client::client(int socket, int id,  std::string & ip) : _username("user" + std::
 		throw	std::runtime_error("Failed accepting a connection : " + std::string(strerror(errno)));
 }
 
-
-client::client(const client& __unused other) {
-
-}
-
-client &client::operator=(const client& __unused other) {
-	return *this;
-}
-
 bool client::operator==(const client& other) {
-	return (this->_username == other._username);
+	return (this->_nickname == other._nickname);
 }
 
 client::~client() {

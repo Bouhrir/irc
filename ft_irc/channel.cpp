@@ -31,30 +31,6 @@ channel::channel(client *creator, std::string name, client *srv) : _name(name) {
 
 }
 
-channel::channel(const channel& other) {
-	*this = other;
-}
-
-channel& channel::operator=(const channel& other) {
-	if (this != &other) {
-		_name = other._name;
-		_modes = other._modes;
-		_creator = other._creator;
-		_hasPass = other._hasPass;
-		_hasTopic = other._hasTopic;
-		_passwd = other._passwd;
-		_topic = other._topic;
-		_creationTime = other._creationTime;
-		_maxUsers = other._maxUsers;
-		_userLimit =  other._userLimit;
-		_server = other._server;
-		_members = other._members;
-		_invited = other._invited;
-		_operators = other._operators;
-	}
-	return *this;
-}
-
 channel::~channel() {
 	// do nothing for now .
 }

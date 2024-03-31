@@ -1,8 +1,12 @@
 #pragma once
 #include<iostream>
 #include<sstream>
+#include<map>
 class bot
 {
+    private:
+    std::map<int,std::string> darija;
+    std::map<int,std::string> cooding;
     public:
         bot();
         bot(const bot &dup);
@@ -15,9 +19,16 @@ class bot
         std::string Things_Irc();
         std::string Importance_Byte();  
         std::string jokes(std::string type);
-        std::string botstart(std::string msg);
+        std::string botstart(std::stringstream &os);
         std::string himsg();
         std::string Zodiac(int day,int month);
         std::string Helpbot();
+        std::string Convertingto();
+        std::string PreparingConnection();
+        std::string PreparingSockets();
+        std::string Clientside();
+        std::string Serverside();
+        std::string Sendingresv();
+        std::string ClosingSocket();
 
 };
